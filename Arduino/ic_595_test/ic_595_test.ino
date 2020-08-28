@@ -1,6 +1,6 @@
 // Sketch to test the IC_595 class.
 
-#include "IC_595.h"
+#include <IC_595.h>
 
 IC_595 sr;
 unsigned long micros_time;

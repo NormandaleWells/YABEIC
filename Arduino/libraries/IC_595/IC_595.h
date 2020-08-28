@@ -1,3 +1,4 @@
+
 #include "Arduino.h"
 
 // IC_595 provides an interface to the 595 shift register.
@@ -36,6 +37,9 @@
 // about 10K times per second; there's still some work to be done
 // to hit that target.  At last measurement, int32_out() was just
 // under 100 usecs.)
+//
+// Most functions are defined in the header file to give the
+// compiler maximum opportunities for inlining the code.
 
 class IC_595
 {
@@ -55,26 +59,7 @@ private:
   uint8_t  latch_mask;
   uint8_t  latch_mask_inv;
 
-  void setup(int data_pin, int shift_pin, int latch_pin)
-  {
-    data_reg   = reinterpret_cast<volatile uint8_t *>(portOutputRegister(digitalPinToPort(data_pin)));
-    data_mask  = digitalPinToBitMask(data_pin);
-    data_mask_inv = ~data_mask;
-    shift_reg  = reinterpret_cast<volatile uint8_t *>(portOutputRegister(digitalPinToPort(shift_pin)));
-    shift_mask = digitalPinToBitMask(shift_pin);
-    shift_mask_inv = ~shift_mask;
-    latch_reg  = reinterpret_cast<volatile uint8_t *>(portOutputRegister(digitalPinToPort(latch_pin)));
-    latch_mask = digitalPinToBitMask(latch_pin);
-    latch_mask_inv = ~latch_mask;
-
-    pinMode(data_pin,  OUTPUT);
-    pinMode(shift_pin, OUTPUT);
-    pinMode(latch_pin, OUTPUT);
-
-    digitalWrite(data_pin,  LOW);
-    digitalWrite(shift_pin, LOW);
-    digitalWrite(latch_pin, LOW);
-  }
+  void setup(int data_pin, int shift_pin, int latch_pin);
 
   void toggle_shift()
   {
@@ -114,15 +99,9 @@ private:
   }
 
 public:
-  IC_595()
-  {
-    setup(2, 3, 4);
-  }
 
-  IC_595(int data_pin, int shift_pin, int latch_pin)
-  {
-    setup(data_pin, shift_pin, latch_pin);
-  }
+  IC_595();
+  IC_595(int data_pin, int shift_pin, int latch_pin);
 
   // NOTE: All output functions are MSB first.
 
