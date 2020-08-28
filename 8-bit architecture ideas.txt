@@ -1,0 +1,607 @@
+8-bit computer ideas
+
+goals
+	pack as many useful instructions into 8 bits as possible
+	more registers
+		index registers with address modes
+	arithmetic and logic: add adc sub sbb and or xor cmp not neg
+	rotate and shift: rol rcl ror rcr shl shr sar
+		could live with shifts by having set/clear carry instructions
+	orthogonal instruction set
+	stack and subroutine calls
+	extensible to 16 bits
+	simplify control logic
+		instruction bits used for control (e.g. register select)
+	I/O
+	addressing modes - (Rn), -(Rn), (Rn)+, offset(Rn)
+		may require separate adder to keep cycle count down
+	not concerned with I/O - one input, one output enough
+		input - dip switches
+		output - display (ala Ben Eater)
+
+overall
+	do what looks challenging but doable, and maybe useful
+	use of LS logic (prefer HCT) driven by lack of 74HC181 chips
+	use mouser.com - better selection, easier searching
+	see James Bates's series on YouTube
+	use Arduino for testing control logic
+
+memory: 256 bytes data, 256 bytes program
+	use ROM for program memory?
+
+registers: A, B, R0..R3, PC, SP
+
+	A	accumulator - target of all ALU operations
+	B	B register - second operand of ALU
+	R0..R3	registers - R2,R3 may be used as address registers
+		can't use all as address regs - not enough bits in instructions
+	PC	program counter
+	SP	stack pointer
+
+alternate register idea (inspired by James Bates's instruction set):
+	A, B as above
+	R0, R1, PC, SP
+		allows immediate operand as (PC)+
+		push is MOV -(SP),Rn
+		pop is MOV Rn,(SP)+
+		bit patterns for (PC) and -(PC) address modes can be used elsewhere
+
+addressing modes:
+
+	Rn		register
+	(Rn)		Rn is address
+	(Rn+)		Rn is address, post-incremented
+	(-Rn)		Rn is address, pre-decremented
+	(Rn+imm)	Rn is address, immediate 8-bit value is added first
+
+flags:
+
+	C	carry		carry out from operation
+	Z	zero		all result bits 0
+	V	overflow	(A7 xor R7) and (B7 xor R7)
+	N	negative	result bit 7
+	All arithmetic/logical operations set all flags
+	Must latch info flags register before A is changed!
+
+I/O
+
+	2 input registers
+	2 output registers
+
+bus
+
+	single system bus
+	ALU operands fed to B register
+	A and B are fed "live" to ALU, output clocked into A
+
+ALU
+	74LS181 - requires use of HCT (or LS) chips everywhere else
+	A register is source/dest for all ALU ops
+	have separate 74LS283x2 for PC/SP (and R2,R3 offset addressing)
+		jump with offset
+		read stack with offset
+		add/subtract stack (set up stack frame)
+		separate bus?
+
+implementation notes:
+
+	register ICs (octal)
+		273 CLR, CLK, not 3-state
+		373 not edge-triggered not 3-state
+		374 CLK, edge-triggered not 3-state
+		377 CLK, CLK enable, not 3-state
+			don't really need clear
+			don't need output enable - can use 245
+			input CLK enable is useful - avoid AND gate (CLK and IN)
+		574 CLK but no CLK enable - requires extra logic to AND enable/CLK
+			but has all inputs/outputs on same side - easier wiring
+			see https://www.reddit.com/r/beneater/comments/hgr2nf/8_bit_gpr_my_build/
+			does have output enable, but we don't really need that
+
+	A,B	74HCT173 D-type register 3-state outputs (or 74LS273?)
+			273 requires use of 245 for enable - no enable on chip
+			*** could use 74HCT377 - 8 bits, no enable, requires 245
+			diff between 273 and 377?
+				273 has CLR - not really needed
+			74HCT574? tri-state octal flip-flop
+				no clock enable - requires separate clk AND enable circuit
+			use 377 / 245 (same as James Bates - https://www.youtube.com/watch?v=AALVh39X3xw
+
+	Rn,SP	74LS169 4-bit synchronous binary up/down counter
+			not available as HCT - use 74HCT191 or 74HCT193
+				these are IT chips w/ CD prefix - what is that?
+		requires 74LS245 octal bus tranceiver
+		74HCT670 - 4x4 bits, independent read/write
+			would allow R0-R3 in 2 chips (3 with transceiver)
+			no built-in increment/decrement
+		use 377 for R0, R1 (needs 245)
+		use 193x2 for R2, R3, SP (needs 245)
+			presettable
+
+	IR	use 377 - no 245 necessary
+
+	PC	74HCT161 4-bit synchronous binary counter
+			these are IT chips w/ CD prefix - what is that?
+			74HCT193? 193 is up/down w/ clear
+			connect TC of low-order to TE of high-order to cascade
+				see James Bates Part 5 ~18:00
+		requires 74HCT245 octal bus tranceiver
+
+	ALU	74LS181 - provides all required ALU ops
+		not available as HCT
+
+	Use 74HCT245 always?  Would allows us to see register contents
+
+	always decode condition as input to control logic
+		2 bits to select flag
+		1 bit to negate
+
+	memory - check into AS6C6264 (8K x 8 SRAM)
+		or AT28C64B
+
+	decoders / demultiplexers
+		74HCT138 - 3-line to 8-line
+			inverted outputs - what we need for most enables!
+			for multiplexed control signals (load/enable)
+		74HCT139 - dual 2-line to 4-line
+			inverted outputs
+			for register selection (ro-r3)
+
+	selectors / multiplexers
+		74HCT157 - quad 2-line to 1-line (single selector signal for all)
+		74HCT257 - quad 2-line to 1-line w/ 3-state outputs
+		74HCT153 - dual 4- to 1-line selector (outputs low if not enabled)
+			for flags
+		74HCT253 - dual 4- to 1-line selector (tri-state outputs)
+			for flags
+
+	XCHG A,Rn
+		1: enable Rn, load B, set 181 to logical B
+		2: enable A, load Rn, load A
+			doable in one micro-op?  load A and enable A together?
+
+	MOV A,Rn
+		1: enable Rn, load B, set 181 to logical B, load A
+
+	SHL, ROL, RCL
+		use ALU
+
+	SHR, SAR, ROR, RCR
+		???
+		special circuit feeding reg B?
+
+	See James Bates series, especially control logic
+		Part 9 - 33 minute mark
+		fixes problems with EEPROMs not being stable soon enough
+			uses 74HCT273 buffer between IR and EEPROM
+			uses 74HCT173 buffer between flags and EEPROM
+			173/273 are clocked on h-l transition, same as sequence counter
+			all signals arrive at EEPROM simultaneously
+
+	don't invert control signals; store as inverted
+		connect LEDs to ground for active high, 5C for active high
+			LED then lights up to shown when signal is active, either way
+			(idea from James Bates)
+
+	memory
+		AT28C256 - EEPROM 32K x 8 $8.88
+		AT28C64  - EEPROM  8K x 8 $4.20
+			same pin-outs, 28C64 has two NC pins where 28C256 has A13,A14
+		6116  - SRAM  2K x 8 $4.64 for standard power, 20 ns, 24-pin
+		71256 - SRAM 32K x 8 $3.29 for standard power, 12 ns, 28 pin
+			any reason to prefer slower chip at same price?
+			similar pinouts
+
+	logic chips
+		00 - quad NAND
+		02 - quad NOR
+		04 - hex inverter
+		08 - quad AND
+		32 - quad OR
+		86 - quad XOR
+
+	conditional branches
+		decode 2-bit field to 1 of 4, and with flags bits, OR together
+		feed to control logic as a single bit
+
+	use separate adder for PC,SP,Rn offset ops?
+		one input from register
+		one input from immediate operand
+
+	separate address and data busses?
+		assume second instruction set for now - should work for first as well
+		R0,R1,SP,PC read/write both busses
+		address bus feed live by address calculator with 2 inputs:
+			register (one of R0,R1,SP,PC)
+			offset (0, 1, -1, or data bus contents (for offsets)
+		MAR connected only to address bus
+		RAM connected only to data bus
+
+control signals:
+
+	PCO	PC out
+	PCI	PC in
+	PCINC	PC increment
+	IRI	IR in
+	RO	register out (register selected by bits in instruction)
+	RI	register in (register selected by bits in instruction)
+	RS	register select (bits 0,1 or bits 2,3)
+	AR	address register (forces bit 3 high for address register)
+	ALUS0
+	 to
+	ALUS3	ALU function selection
+	ALUM	ALU M signal (logical vs. arithmetic)
+	ALUC	ALU C signal (use carry)
+	BI	register B in (second ALU input)
+	AO	register A out
+	AI	register A in
+	SPO	SP out
+	SPI	SP in
+	RAMO	RAM out
+	RAMI	RAM in
+	MARI	MAR in
+	HLT	halt
+	FO	flags out
+	FI	flags in
+	SPINC	increment stack pointer
+	SPDEC	decrement stack pointer
+	RINC	increment (address) register
+	RDEC	decrement (address) register
+ 	RS	reset sequence (back to sequence point 0 - fetch)
+
+	flag selection uses bits from instruction
+	register selection uses bits from instruction
+	can multiplex outputs (PCO, RO, AO, SPO, RAMO, FO)
+	can multiplex inputs (PCI, RI, AI, SPI, RI, BI, RAMI, MARI, FI)
+
+	combinatorial logic to map 3 bits of ALU ops to 6 ALU inputs?
+
+instruction set:
+
+General format
+
+	ggg ooo nn
+	ggg aap nn
+	ggg ooo ff
+
+		ggg - instruction group
+		ooo - operation
+		nn  - register
+			00 - R0
+			01 - R1
+			10 - R2
+			11 - R3
+		aa - addressing mode
+			00 - (Rn)
+			01 - (Rn + offset)
+			10 - (Rn+)
+			11 - (-Rn)
+		p - pointer register
+			0 - R2
+			1 - R3
+		ff - branch condition
+			00 - C
+			01 - Z
+			10 - N
+			11 - O
+
+Registers always in bits 0,1 or 2,3 (for addressing, bit 3 ORed high)
+Addressing mode always in bits 3,4
+Branch condition always in bits 0,1
+
+Group 0a - register-register transfers
+
+	000 0dd ss	MOV Rd,Rs
+
+	special cases
+	000 000 00	NOP (MOV R0,R0)
+	000 001 01 	RET (MOV R1,R1)
+	000 010 10 	STC (MOV R2,R2)
+	000 011 11 	CLC (MOV R3,R3)
+
+Group 0b
+
+	000 100 nn	IN Rn
+	000 101 nn	OUT Rn
+	000 110 nn	LD Rn,(imm)
+	000 111 nn	ST (imm),Rn
+
+Group 1 - other register ops
+
+	001 ooo nn
+
+	ooo
+		000 MOV Rn,A
+		001 MOV A,Rn
+		010 POP Rn
+		011 PUSH Rn
+		100 MOV Rn,SP
+		101 MOV SP,Rn
+		110 LD Rn,(SP+imm)
+		111 ST (SP+imm),Rn
+
+Group 2 - ALU operations
+
+	A is always first operand and destination
+	all flags set on each operation
+	010 ooo nn
+
+		nn is register number of second operand
+		ooo
+			add	A = A + Rn
+			sub	A = A - Rn
+			adc	A = A + Rn + C
+			sbb	A = A - Rn - C
+			xor	A = A ^ Rn
+			and	A = A & Rn
+			or	A = A | Rn
+			cmp	A - Rn (flags only)
+
+Group 3 - accumulator-only operations
+
+	011 ooo gg (gg - subgroup)
+	all flags set on each operation
+
+	subgroup 00
+		011 ooo 00
+		ooo
+			sar	shift right, bit 7 duplicated, bit 0 to C
+			shr	shift right, bit 7 gets zero, bit 0 to C
+			shl	shift left, bit 0 gets zero, bit 7 to C
+			ror	rotate right, bit 0 to bit 7
+			rol	rotate left, bit 7 to bit 0
+			rcr	rotate right, C to bit 7, bit 0 to C
+			rcl	rotate left, C to bit 0, bit 7 to C
+	subgroup 01
+		011 ooo 01 (imm = immediate 8-bit value)
+		ooo
+			add imm		A = A + imm
+			sub imm		A = A - imm
+			adc imm		A = A + imm
+			sbc imm		A = A - imm
+			xor imm		A = A ^ imm
+			and imm		A = A & imm
+			or imm		A = A | imm
+			cmp imm		A - imm (flags only)
+
+	subgroup 10
+		011 iii 10
+			add imm		A = A + imm (immediate 3-bit value) (+1?)
+					replace with 'out' (iii = port)?
+
+	subgroup 11
+		011 iii 11
+			sub imm		A = A - imm (immediate 3-bit value) (-1?)
+					replace with 'in' (iii = port)?
+
+Group 4 - load register
+
+	100 aap nn	LD Rn,(Rp)
+	except auto inc/dec where Rp == Rn
+
+	unused:
+		100 100 10	LD R2,(R2)+
+		100 110 10	LD R2,-(R2)
+		100 101 11	LD R3,(R3)+
+		100 111 11	LD R3,-(R3)
+
+Group 5 - store register
+
+	101 aap nn	ST (Rp),Rn
+	except auto inc/dec where Rp == Rn
+
+	unused:
+		101 100 10	ST (R2)+,R2
+		101 110 10	ST -(R2),R2
+		101 101 11	ST (R3)+,R3
+		101 111 11	ST -(R3),R3
+
+Group 6 - more register ops (with addressing)
+
+	110 aap oo
+
+		00 - LD A,(Rn)
+		01 - ST (Rn),A
+		10
+		11
+
+		no flags set
+
+Group 7a branch instructions
+
+	111 0oo ff
+
+		ff	flag to check
+		oo
+			00 - BRc imm
+			01 - BRNc imm
+			10 - SKc
+			11 - SKNc
+		c = C, Z, N, O
+		destination is immediate byte
+
+Group 7b
+
+	111 1oo nn
+
+		oo
+			00 - XCHG Rn,A
+				Rn -> B, A -> Rn, B -> A (via ALU)
+			01 - CALL (Rn)
+			10 - LD Rn,imm
+			11 - stack pointer ops, depending on nn
+				00 - ADD SP,imm
+				01 - PUSH imm
+				10 - PUSH A
+				11 - POP A
+
+	111 111 oo
+
+		oo
+			00 - CALL imm
+			01 - JMP imm
+			10 - LD SP,imm
+			11 - HLT
+ 
+Alternate instruction set (inspired by James Bates)
+	A, B, R0, R1, SP(=R2), PC(=R3)
+
+MOV group
+
+	00 Ro aa Ra = MOV Ro,aa(Ra) (load)
+	01 Ro aa Ra = MOV aa(Ra),Ro (store)
+		aa = address mode
+			00 = (Rn)
+			01 = off(Rn)
+			10 = (Rn)+
+			11 = -(Rn)
+			register direct source encoded as aa(SP)=R0, aa(PC)=R1
+			A encoded generally as (PC)
+		Ra = address register
+		Ro = other register
+		Rg = general-purpose register (R0 or R1)
+		off = offset (immediate value - PC incremented)
+		addr = address (@immedate value - PC incremented - encoded using off(PC))
+
+		00 0x 00 00	MOV Rg,(R0)
+		00 0x 00 01	MOV Rg,(R1)
+		00 0x 00 10	MOV Rg,(SP)	fast access to one local variable
+		00 0x 00 11	MOV Rg,A	would be MOV Rg,(PC)
+
+		00 0x 01 00	MOV Rg,off(R0)
+		00 0x 01 01	MOV Rg,off(R1)
+		00 0x 01 10	MOV Rg,off(SP)	access to one local variables
+		00 0x 01 11	MOV Rg,addr	would be MOV Rg,off(PC)
+
+		00 0x 10 00	MOV Rg,(R0)+
+		00 0x 10 01	MOV Rg,(R1)+
+		00 0x 10 10	POP Rg		alias for MOV Rg,(SP)+
+		00 0x 10 11	MOV Rg,imm	alias for MOV Rg,(PC)+
+
+		00 0x 11 00	MOV Rg,-(R0)
+		00 0x 11 01	MOV Rg,-(R1)
+		00 0x 11 10	MOV Rg,R0	would be MOV Rg,-(SP)
+		00 0x 11 11	MOV Rg,R1	would be MOV Rg,-(PC)
+
+		00 10 xx xx	branch		would be MOV SP,aa(ra)
+
+		00 11 00 00	MOV PC,(R0)
+		00 11 00 01	MOV PC,(R1)
+		00 11 00 10	MOV PC,(SP)	local variable is jump address
+		00 11 00 11	MOV PC,A	would be MOV PC,(PC)
+
+		00 11 01 00	MOV PC,off(R0)	switch statement?
+		00 11 01 01	MOV PC,off(R1)	switch statement?
+		00 11 01 10	MOV PC,off(SP)	switch statement (local array of jump dests)?
+		00 11 01 11	???		would be MOV PC,off(PC)
+
+		00 11 10 00	MOV PC,(R0)+	useful???
+		00 11 10 01	MOV PC,(R1)+	useful???
+		00 11 10 10	RET		alias for MOV PC,(SP)+
+		00 11 10 11	JMP addr	would be MOV PC,(PC+)
+
+		00 11 11 00	MOV PC,-(R0)	useful???
+		00 11 11 01	MOV PC,-(R1)	useful???
+		00 11 11 10	MOV PC,R0	would be MOV PC,-(SP)
+		00 11 11 11	MOV PC,R1	would be MOV PC,-(PC)
+
+		01 0x 00 00	MOV (R0),Rg
+		01 0x 00 01	MOV (R1),Rg
+		01 0x 00 10	MOV (SP),Rg	fast access to one local variable
+		01 0x 00 11	MOV A,Rg	would be MOV (PC),Rg
+
+		01 0x 00 00	MOV off(R0),Rg
+		01 0x 00 01	MOV off(R1),Rg
+		01 0x 00 10	MOV off(SP),Rg	access to one local variable
+		01 0x 00 11	MOV addr,Rg	would be MOV off(PC),Rg
+
+		01 0x 10 00	MOV (R0)+,Rg
+		01 0x 10 01	MOV (R1)+,Rg
+		01 0x 10 10	MOV SP,A	would be MOV (SP)+,Rg
+		01 0x 10 11	???		would be MOV (PC)+,Rg
+
+		01 0x 11 00	MOV -(R0),Rg
+		01 0x 11 01	MOV -(R1),Rg
+		01 0x 11 10	PUSH Rg		alias for MOV -(SP),Rg
+		01 0x 11 11	CLR Rg		would be MOV -(PC),Rg
+
+		01 10 00 00	MOV R0,SP	would be MOV (R0),SP (for local address calcs)
+		01 10 00 01	MOV R1,SP	would be MOV (R1),SP (for local address calcs)
+		01 10 00 10	INITSP		SP = 0
+		01 10 00 11	MOV A,SP	would be MOV (PC),SP (for local address calcs)
+		01 10 01 xx	shift		would be MOV off(PC),Rn
+		01 10 10 xx	rotate		would be MOV (PC)+,Rn
+		01 10 11 xx	skip		would be MOV -(PC),Rn
+
+		01 11 00 0x	MOV (Rg),PC
+		01 11 00 10	???		would be MOV (SP),PC
+		01 11 00 11	MOV A,PC	would be MOV (PC),PC
+
+		01 11 01 0x	INC Rg		would be MOV off(Rn),PC
+		01 11 01 1x	DEC Rg		would be MOV off(Rn),PC
+
+		01 11 10 00	PUSH A		would be MOV (R0)+,PC
+		01 11 10 01	POP A		would be MOV (R1)+,PC
+		01 11 10 10	MOV R0,PC	would be MOV (SP)+,PC
+		01 11 10 11	MOV R1,PC	would be MOV (PC)+,PC
+
+		01 11 11 00	INC A		would be MOV -(Rg),PC
+		01 11 11 01	DEC A		would be MOV -(Rg),PC
+		01 11 11 10	PUSH PC		alias for MOV -(SP),PC
+		01 11 11 11	HLT		would be MOV -(PC),PC
+
+
+ALU group
+	1 ooo aa Ra
+		ooo = operation
+			ADD, ADC, SUB, SBB, AND, OR, XOR, CMP
+
+		1 ooo aa 00	ALU aa(R0)
+		1 ooo aa 01	ALU aa(R1)
+
+		1 ooo 00 10	ALU (SP)	quick access to one local variable
+		1 ooo 01 10	ALU off(SP)
+		1 ooo 10 10	ALU (SP)+	(useful? ALU + POP)
+		1 ooo 11 10	ALU R0		would be ALU -(SP)
+
+		1 ooo 00 11	???		would be ALU (PC)
+						could use for CLR A, PUSH A, POP A, NEG A, COMP A, IN, OUT
+						could be ALU A, but has limited usefulness
+		1 ooo 01 11	ALU addr	would be ALU off(PC)
+		1 ooo 10 11	ALU imm		alias for ALU (PC)+
+		1 ooo 11 11	ALU R1		would be ALU -(PC)
+
+Branch group
+	00 10 dd cc - branch on condition (would be MOV SP,aa(Ra))
+	01 10 11 cc - skip on condition (next instruction must be one byte)
+		cc = condition
+			00 = Z (zero)
+			01 = C (carry)
+			10 = O (overflow)
+			11 = N (negative)
+		dd = destination
+			00 = (PC)+ imm
+			01 = A
+			10 = R0
+			11 = R1
+	could use 01 10 cc dd for skip on condition, and find other bit patterns
+		for the three exceptions there
+
+Shift group
+	01 10 01 xx
+		01 10 01 00	SHL (alias for ADD A?)
+		01 10 01 01	???
+		01 10 01 10	SHR
+		01 10 01 11	SAR
+
+Rotate group
+	01 10 10 xx
+		01 10 10 00	STC
+		01 10 10 01	CLC
+		01 10 10 10	ROL
+		01 10 10 11	ROR
+
+missing:
+	enter (set up space on stack for stack frame)
+	leave (really just POP SP)
+	exchange (A with R0,R1)

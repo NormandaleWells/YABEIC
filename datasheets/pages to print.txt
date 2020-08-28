@@ -1,0 +1,51 @@
+00	1	QUADRUPLE 2-INPUT POSITIVE-NAND GATES
+
+02	1	QUADRUPLE 2-INPUT POSITIVE-NOR GATES
+
+04	1	HEX INVERTERS
+
+08	1	QUADRUPLE 2-INPUT POSITIVE-AND GATES
+
+14	1,3	Hex Schmitt-Trigger Inverters
+
+32	1	QUADRUPLE 2-INPUT POSITIVE-OR GATES
+
+86	1	High-Speed CMOS Logic Quad 2-Input EXCLUSIVE-OR Gate
+
+138	1-2	3-Line to 8-Line Decoders/Demultiplexers
+
+139	1-2	Dual 2-Line to 4-Line Decoders/Demultiplexers
+
+153	1-2	High-Speed CMOS Logic Dual 4- to 1-Line Selector/Multiplexer
+
+157	1-2	Quadruple 2-Line to 1-Line Data Selectors/Multiplexers
+
+161	1-3	High-Speed CMOS Logic Presettable Counters
+
+165	1-2	High-Speed CMOS Logic 8-Bit Parallel-In/Serial-Out Shift Register
+
+173	1-2	High-Speed CMOS Logic Quad D-Type Flip-Flop, Three-State
+
+181	1-4	ARITHMETIC LOGIC UNITS/FUNCTION GENERATORS
+
+191	1-2	Synchronous Up/Down Counters with Down/Up Mode Control
+
+193	1-2	High-Speed CMOS Logic Presettable Synchronous 4-Bit Up/Down Counters
+
+194	1-2	High-Speed CMOS Logic 4-Bit Bidirectional Universal Shift Register
+
+245	1,3	Octal Bus Transceivers With 3-State Outputs
+
+257	1-2	Quadruple 2-Line to 1-Line Data Selectors/Multiplexers with 3-State Outputs
+
+273	1-2	Octal D-Type Flip-Flops with Clear
+
+283	1	High-Speed CMOS Logic 4-Bit Binary Full Adder with Fast Carry
+
+299	1-2	High-Speed CMOS Logic 8-Bit Universal Shift Register; Three-State
+
+377	1-2	OCTAL D-TYPE FLIP-FLOPS WITH CLOCK ENABLE
+
+574	1-2	Octal Edge-Triggered D-Type Flip-Flops with 3-State Outputs
+
+670	1-2	High-Speed CMOS Logic 4x4 Register File

@@ -1,0 +1,299 @@
+Available HCT chips from Mouser
+
+Logic gates (all TI)
+
+	CD74HCT00E	quad 2-input NAND gate
+	SN74HCT00N
+	SN74HCT00NE4
+
+	CD74HCT02E	quad 2-input NOR gate
+	CD74HCT02EE4
+	SN74HCT02N
+	SN74HCT02NE4
+
+	CD74HCT03E	quad 2-input NAND gate (open collector)
+
+	CD74HCT08E	quad 2-input AND gate
+	SN74HCT08N
+	SN74HCT08NE4
+
+	CD74HCT10E	triple 3-input NAND gate
+
+	CD74HCT11E	triple 3-input AND gate
+
+	CD74HCT20E	dual 4-input NAND gate
+	CD74HCT20EE4
+
+	CD74HCT21E	dual 4-input AND gate
+
+	CD74HCT27E	triple 3-input NOR gate
+
+	CD74HCT30E	single 8-input NAND gate
+	CD74HCT30EE4
+
+	CD74HCT32E	quad 2-input OR gate
+	CD74HCT32EE4
+	SN74HCT32N
+	SN74HCT32NE4
+
+	CD74HCT86E	quad 2-input XOR gate
+	CD74HCT86EE4
+
+	CD74HCT132E	quad 2-input NAND gate (Schmitt-trigger)
+	CD74HCT132EE4
+
+	CD74HCT4075E	triple 3-input OR gate
+
+Buffers and line drivers
+
+	CD74HCT125E	quad bus buffer, negative enable (three-state)
+	SN74HCT125N
+	SN74HCT125NE4
+
+	CD74HCT126E	quad bus buffer, positive enable (three-state)
+
+	CD74HCT240E	octal buffer, inverting outputs (Schmitt-trigger, three-state)
+	CD74HCT240EE4
+	SN74HCT240N
+
+	CD74HCT241E	octal buffer, non-inverting outputs (Schmitt-trigger, three-state)
+	CD74HCT241EE4
+
+	CD74HCT244E	octal buffer, non-inverting outputs (Schmitt-trigger, three-state)
+	SN74HCT244N
+	SN74HCT244NE4
+
+	CD74HCT365E	hex buffer, non-inverting outputs (three-state)
+
+	CD74HCT367E	hex buffer, non-inverting outputs (three-state)
+
+	CD74HCT368E	hex buffer, inverting outputs (three-state)
+
+	CD74HCT540E	inverting octal buffer (Schmitt-trigger, three-state)
+	SN74HCT540N
+
+	CD74HCT541E	non-inverting octal buffer (Schmitt-trigger, three-state)
+	SN74HCT541N
+	SN74HCT541NE4
+
+Flip-flops
+
+	CD74HCT73E	dual J-K flip-flop, asynchronous clear
+	CD74HCT73EE4
+
+	CD74HCT74E	dual D positive edge triggered flip-flop, asynchronous preset and clear
+	SN74HCT74NE4
+	SN74HCT74N
+
+	CD74HCT107E	dual J-K flip-flop, clear
+
+	CD74HCT109E	dual J-Not-K positive-edge-triggered flip-flop, clear and preset
+
+	CD74HCT112E	dual J-K negative-edge-triggered flip-flop, clear and preset
+
+	CD74HCT173E	quad D flip-flop, asynchronous clear (three-state)
+
+	CD74HCT174E	hex D flip-flop, common asynchronous clear
+	CD74HCT174EE4
+
+	CD74HCT175E	quad D edge-triggered flip-flop, complementary outputs and asynchronous clear
+	CD74HCT175EE4
+
+	CD74HCT273E	8-bit register, asynchronous clear
+	CD74HCT273EE4
+	SN74HCT273N
+
+	CD74HCT374E	octal register (three-state)
+	CD74HCT374EE4
+	SN74HCT374N
+
+	CD74HCT377E	8-bit register, clock enable
+	CD74HCT377EE4
+	SN74HCT377N
+
+	CD74HCT534E	octal register, inverting outputs (three-state)
+
+	CD74HCT564E	8-bit D-type edge-triggered register, inverting outputs (three-state)
+
+	CD74HCT574E	octal D-type edge-triggered flip-flop )three-state)
+	SN74HCT574N
+	SN74HCT574NE4
+
+Encoders, decoders, multiplexers and demultiplexers
+
+	CD74HCT42E	BCD to decimal decoder
+
+	CD74HCT137E	3-line to 8-line decoder/demultiplexer, address latch, inverting outputs
+
+	CD74HCT138E	3-line to 8-line decoder/demultiplexer, inverting outputs
+	SN74HCT138N
+	SN74HCT138NE4
+
+	CD74HCT139E	dual 2 to 4-line decoder/demultiplexer, inverting outputs
+	CD74HCT139EE4
+	SN74HCT139N
+
+	CD74HCT147E	10-line to 4-line priority encoder
+
+	CD74HCT151E	8-line to 1-line data selector/multiplexer
+
+	CD74HCT153E	dual 4-line to 1-line data selector/multiplexer, non-inverting outputs
+	CD74HCT153EE4
+
+	CD74HCT157E	quad 2-line to 1-line data selector/multiplexer, non-inverting outputs
+	SN74HCT157N
+
+	CD74HCT158E	quad 2-line to 1-line data selector/multiplexer, inverting outputs
+
+	CD74HCT237E	3-of-8 decoder/demultiplexer, address latch, active high outputs
+
+	CD74HCT238E	3-of-8 decoder/demultiplexer, active high outputs
+
+	CD74HCT251E	8-line to 1-line data selector/multiplexer, complementary outputs		three-state
+
+	CD74HCT253E	dual 4-line to 1-line data selector/multiplexer		three-state
+	CD74HCT253EE4
+
+	CD74HCT257E	quad 2-line to 1-line data selector/multiplexer, non-inverting outputs		three-state
+	SN74HCT257N
+
+	CD74HCT258E	quad 2-line to 1-line data selector/multiplexer, inverting outputs		three-state
+
+	CD74HCT354E	8-line to 1-line data selector/multiplexer, transparent registers		three-state
+
+	CD74HCT356E	8-line to 1-line data selector/multiplexer, edge-triggered registers		three-state
+
+	CD74HCT4511E	BCD to 7-segment decoder
+	CD74HCT4511EE4
+
+	CD74HCT4543E	BCD to 7-segment latch/decoder/driver for LCDs
+	CD74HCT4543EE4
+
+Inverters
+
+	CD74HCT04E	hex inverter gate
+	CD74HCT04EE4
+	SN74HCT04N
+	SN74HCT04NE4
+
+	CD74HCT14E	hex inverter gate	Schmitt-trigger	
+	SN74HCT14N
+	SN74HCT14NE4
+
+Counter ICs
+
+	CD74HCT93E	4-bit binary counter (separate divide-by-2 and divide-by-8 sections)
+	CD74HCT93EE4
+
+	CD74HCT161E	synchronous presettable 4-bit binary counter, asynchronous clear
+	CD74HCT161EE4
+
+	CD74HCT163E	synchronous presettable 4-bit binary counter, synchronous clear
+
+	CD74HCT191E	synchronous presettable up/down 4-bit binary counter
+
+	CD74HCT193E	synchronous presettable up/down 4-bit binary counter, clear
+
+	CD74HCT390E	dual 4-bit decade counter
+	CD74HCT390EE4
+
+	CD74HCT393E	dual 4-bit binary counter
+			no preset
+
+	CD74HCT4024EE4	7-stage ripple carry binary counter
+
+	CD74HCT4020E	14-stage binary counter
+
+	CD74HCT4024E	7-stage ripple carry binary counter
+
+	CD74HCT4040E	12-stage binary ripple counter
+
+	CD74HCT4060E	14-stage binary ripple counter with oscillator
+	CD74HCT4060EE4
+
+	CD74HCT4520E	dual 4-bit synchronous binary counter
+
+	CD74HCT40103E	presettable 8-bit synchronous down counter
+
+Counter shift registers
+
+	CD74HCT164E	8-bit serial-in parallel-out (SIPO) shift register, asynchronous clear, no output latch
+			can't be cascaded?
+
+	CD74HCT165E	8-bit parallel-in serial-out (PISO) shift register, parallel load, complementary outputs
+	CD74HCT165EE4
+
+	CD74HCT166E	parallel-load 8-bit shift register
+	CD74HCT166EE4
+
+	CD74HCT194E	4-bit bidirectional universal shift register
+
+	CD74HCT299E	8-bit bidirectional universal shift/storage register
+				SIPO or PISO, left or right shift, not cascadable
+
+	CD74HCT597E	8-bit shift registers, Parallel-In, Serial-Out, input latches
+
+	CD74HCT4094E	8-bit three-state shift register/latch
+	CD74HCT4094EE4
+
+Latches
+
+	CD74HCT75E	4-bit bistable latch, complementary outputs
+	CD74HCT75EE4
+
+	CD74HCT259E	8-bit addressable latch
+	CD74HCT259EE4
+
+	CD74HCT373E	octal transparent latch		three-state
+	SN74HCT373NE4
+
+	CD74HCT533E	octal transparent latch, inverting outputs		three-state
+
+	CD74HCT563E	8-bit D-type transparent latch, inverting outputs		three-state
+
+	CD74HCT573E	octal D-type transparent latch		three-state
+	CD74HCT573EE4
+
+Multiplexer switch ICs
+
+	CD74HCT4051E	high-speed 8-channel analog multiplexer/demultiplexer
+
+	CD74HCT4052E	dual 4-channel analog multiplexer/demultiplexers
+	CD74HCT4052EE4
+
+	CD74HCT4053E	triple 2-channel analog multiplexer/demultiplexers
+
+	CD74HCT4351E	8-channel analog multiplexer/demultiplexer with latch		analog
+
+Bus transceivers
+
+	CD74HCT243E	quad bus transceiver, non-inverting outputs	Schmitt-trigger	three-state
+	CD74HCT243EE4
+
+	CD74HCT245E	octal bus transceiver, non-inverting outputs	Schmitt-trigger	three-state
+	CD74HCT245EE4
+	SN74HCT245N
+	SN74HCT245NE4
+
+	SN74HCT623N	octal bus transceiver, non-inverting		three-state
+
+	CD74HCT640E	octal bus transceiver, inverting outputs		three-state
+
+	SN74HCT645N	octal bus transceiver, non-inverting outputs		three-state
+
+Logic comparators
+
+	CD74HCT85E	4-bit magnitude comparator
+
+	CD74HCT688E	8-bit magnitude comparator, enable	
+	CD74HCT688EE4
+
+Logic adder and subtractor
+
+	CD74HCT283E	4-bit binary full adder (has carry in function)
+
+Registers
+
+	CD74HCT670E	16-bit register file (4x4)		three-state
+
+	CD74HCT40105E	64-bit FIFO memory (16x4)		three-state
