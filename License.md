@@ -7,12 +7,7 @@ See the License.txt files in the specific source directories for details.
 
 In plain English:
 
-Feel free to use the text of this site in any way you please,
+Feel free to use anything on this site in any way you please,
 as long as I get attribution as the original author.
-If you want to incorporate the text in content that you're selling,
+If you want to incorporate anything here into content that you're selling,
 contact me; I want [a piece of the action](https://www.youtube.com/watch?v=FbBuNGVDNCM).
-
-As for the code, it is NOT production-ready.
-Use it as you see fit,
-but I'm sure your language comes with a far more robust library
-than what you'll find here.
