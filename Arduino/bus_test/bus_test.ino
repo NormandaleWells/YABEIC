@@ -1,4 +1,6 @@
 
+#include "Port_8.h"
+
 // This is an initial test of reading and writing the databus
 // from the Arduino.
 
@@ -14,41 +16,27 @@
 
 const byte enable_pin = 53;
 
-volatile uint8_t * port_F_data_reg   = reinterpret_cast<volatile uint8_t *>(0x31);
-volatile uint8_t * port_F_dir_reg    = reinterpret_cast<volatile uint8_t *>(0x30);
-volatile uint8_t * port_F_input_reg  = reinterpret_cast<volatile uint8_t *>(0x2F);
-
-volatile uint8_t * port_K_data_reg   = reinterpret_cast<volatile uint8_t *>(0x108);
-volatile uint8_t * port_K_dir_reg    = reinterpret_cast<volatile uint8_t *>(0x107);
-volatile uint8_t * port_K_input_reg  = reinterpret_cast<volatile uint8_t *>(0x106);
+Port_8 output_port(54, 61, false);
+Port_8  input_port(62, 69, true);
 
 void setup()
 {
   Serial.begin(9600);
+
+  Serial.println("input:");
+  input_port.debug();
+  Serial.println("output:");
+  output_port.debug();
+
+  if (!output_port.is_valid())
+    Serial.println("Output port is not valid!");
+  if (!input_port.is_valid())
+    Serial.println("Output port is not valid!");
+
   pinMode(enable_pin, OUTPUT);
   digitalWrite(enable_pin, HIGH);
 
-  // Configure port F
-  pinMode(54, OUTPUT);
-  pinMode(55, OUTPUT);
-  pinMode(56, OUTPUT);
-  pinMode(57, OUTPUT);
-  pinMode(58, OUTPUT);
-  pinMode(59, OUTPUT);
-  pinMode(60, OUTPUT);
-  pinMode(61, OUTPUT);
-
-  // Configure port K
-  pinMode(62, INPUT);
-  pinMode(63, INPUT);
-  pinMode(64, INPUT);
-  pinMode(65, INPUT);
-  pinMode(66, INPUT);
-  pinMode(67, INPUT);
-  pinMode(68, INPUT);
-  pinMode(69, INPUT);
-
- uint8_t bus_value = *port_K_input_reg;
+  uint8_t bus_value = input_port.read();
 
   Serial.print("Initial port value: ");
   Serial.println(bus_value);
@@ -58,38 +46,38 @@ void loop()
 {
   for (uint8_t i = 0; i < 256; i++)
   {
-    *port_F_data_reg = i;
+    output_port.write(i);
 
-    uint8_t data = *port_K_input_reg;
+    uint8_t data = input_port.read();
     if (data != 0)
     {
       Serial.print("ERROR 1: enable high, but data is ");
       Serial.print(data);
       Serial.println(" instead of zero");
-      delay(10000);
+      delay(2000);
     }
 
     digitalWrite(enable_pin, LOW);
-    data = *port_K_input_reg;
+    data = input_port.read();
     if (data != i)
     {
       Serial.print("ERROR 2: enable is low, but data is ");
       Serial.print(data);
       Serial.print(" instead of ");
       Serial.println(i);
-      delay(10000);
+      delay(2000);
     }
 
     delay(100);
 
     digitalWrite(enable_pin, HIGH);
-    data = *port_K_input_reg;
+    data = input_port.read();
     if (data != 0)
     {
       Serial.print("ERROR 3: enable high, but data is ");
       Serial.print(data);
       Serial.println(" instead of zero");
-      delay(10000);
+      delay(2000);
     }
 
     delay(100);
