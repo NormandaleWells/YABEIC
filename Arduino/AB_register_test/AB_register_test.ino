@@ -78,7 +78,7 @@ void loop()
     }
 
     clock_high();
-    delay(1000);
+    delay(100);
     clock_low();
 
     control_out(AREG_OUT_ | BREG_IN_);
@@ -98,7 +98,7 @@ void loop()
     }
 
     clock_high();
-    delay(1000);
+    delay(100);
     clock_low();
 
     control_out(BREG_OUT_);
@@ -118,6 +118,6 @@ void loop()
     }
 
     clock_high();
-    delay(1000);
+    delay(100);
   }
 }
