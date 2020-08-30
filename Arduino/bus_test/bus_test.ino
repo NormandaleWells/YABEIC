@@ -68,7 +68,7 @@ void loop()
       delay(2000);
     }
 
-    delay(100);
+    delay(50);
 
     digitalWrite(enable_pin, HIGH);
     data = input_port.read();
@@ -80,6 +80,6 @@ void loop()
       delay(2000);
     }
 
-    delay(100);
+    delay(50);
   }
 }
