@@ -1,5 +1,6 @@
 
 #include "Port_8.h"
+#include "IC_595.h"
 
 // This is an initial test of reading and writing the databus
 // from the Arduino.
@@ -19,9 +20,14 @@ const byte enable_pin = 53;
 Port_8 output_port(54, 61, false);
 Port_8  input_port(62, 69, true);
 
+IC_595 control;
+
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("Make sure the Arduino out is pin 53, not driven by the 595s.");
+
+  control.int32_out(-1);
 
   Serial.println("input:");
   input_port.debug();

@@ -48,6 +48,10 @@ void clock_low()
 
 void setup()
 {
+    Serial.begin(9600);
+    Serial.println("Make sure the Arduino out is driven by the 595s.");
+
+    pinMode(clock_pin, OUTPUT);
 }
 
 void loop()
@@ -55,29 +59,65 @@ void loop()
   for (byte i = 0; i <=255; i++)
   {
     clock_low();
+
     control_out(MEM_OUT_ | AREG_IN_);
     output_port.write(i);
-    delay(1000);
-    clock_high();
 
-    clock_low();
-    control_out(AREG_OUT_ | BREG_IN_);
-    delay(1000);
-    clock_high();
-
-    clock_low();
-    control_out(BREG_OUT_);
     uint8_t data = input_port.read();
-    delay(1000);
-    clock_high();
-
     if (data != i)
     {
-      Serial.print("ERROR: invalid data.  Read  ");
+      Serial.print("ERROR 1: invalid data on mem out.  Read  ");
       Serial.print(data);
       Serial.print(" instead of ");
       Serial.println(i);
       delay(2000);
     }
+    else
+    {
+      delay(100);
+    }
+
+    clock_high();
+    delay(1000);
+    clock_low();
+
+    control_out(AREG_OUT_ | BREG_IN_);
+
+    data = input_port.read();
+    if (data != i)
+    {
+      Serial.print("ERROR 2: invalid data on A out.  Read  ");
+      Serial.print(data);
+      Serial.print(" instead of ");
+      Serial.println(i);
+      delay(2000);
+    }
+    else
+    {
+      delay(100);
+    }
+
+    clock_high();
+    delay(1000);
+    clock_low();
+
+    control_out(BREG_OUT_);
+
+    data = input_port.read();
+    if (data != i)
+    {
+      Serial.print("ERROR 3: invalid data on B out.  Read  ");
+      Serial.print(data);
+      Serial.print(" instead of ");
+      Serial.println(i);
+      delay(2000);
+    }
+    else
+    {
+      delay(100);
+    }
+
+    clock_high();
+    delay(1000);
   }
 }
