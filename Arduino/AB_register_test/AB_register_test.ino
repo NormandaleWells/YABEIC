@@ -9,8 +9,11 @@
 
 // There are 5 control lines, attached to the output lines of a series of
 // '595 shift registers, controlled through an IC_595 object.  The IC_595
-// is set up according the default ctor.
- 
+// is set up according the default ctor:
+//    data  - Arduino pin 2 -> 595 pin 14
+//    shift - Arduino pin 3 -> 595 pin 11
+//    latch - Arduino pin 4 -> 595 pin 12
+
 #include <IC_595.h>
 #include <Port_8.h>
 
@@ -48,10 +51,11 @@ void clock_low()
 
 void setup()
 {
-    Serial.begin(9600);
-    Serial.println("Make sure the Arduino out is driven by the 595s.");
+  Serial.begin(9600);
+  Serial.println("Make sure the Arduino out is driven by the 595s.");
 
-    pinMode(clock_pin, OUTPUT);
+  control_out(0);
+  pinMode(clock_pin, OUTPUT);
 }
 
 void loop()
