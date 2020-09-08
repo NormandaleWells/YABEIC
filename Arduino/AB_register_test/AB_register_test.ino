@@ -5,7 +5,9 @@
 //
 // Each register is implemented using a '574 and a '245.  The '245 outputs and
 // '574 inputs are tied to the bus, which is also attached to ports F (output)
-// and K (input) of an Arduino Mega.
+// and K (input) of an Arduino Mega.  F is connected to the input side of
+// the interface board's '245; K is connected to the output side of all the
+// '245s (which constitutes the bus).
 
 // There are 5 control lines, attached to the output lines of a series of
 // '595 shift registers, controlled through an IC_595 object.  The IC_595
@@ -58,6 +60,21 @@ void setup()
   pinMode(clock_pin, OUTPUT);
 }
 
+// Each pass through the main loop executes the
+// following sequence for each number 0..255
+//
+//    Mem out -> A in
+//    A out   -> B in
+//    B out   -> Mem in
+//
+// (Actually, for debugging purposes, the Arduino reads the
+// data bus at each step the make sure the proper value is
+// found there.)
+
+const int error_delay = 20000;      // delay after invalid data found
+const int pulse_width = 100;
+const int view_delay = 1000;        // time to view results
+
 void loop()
 {
   for (byte i = 0; i <=255; i++)
@@ -74,15 +91,13 @@ void loop()
       Serial.print(data);
       Serial.print(" instead of ");
       Serial.println(i);
-      delay(2000);
-    }
-    else
-    {
-      delay(100);
+      delay(error_delay);
     }
 
+    delay(view_delay);
+
     clock_high();
-    delay(100);
+    delay(pulse_width);
     clock_low();
 
     control_out(AREG_OUT_ | BREG_IN_);
@@ -94,15 +109,13 @@ void loop()
       Serial.print(data);
       Serial.print(" instead of ");
       Serial.println(i);
-      delay(2000);
-    }
-    else
-    {
-      delay(100);
+      delay(error_delay);
     }
 
+    delay(view_delay);
+
     clock_high();
-    delay(100);
+    delay(pulse_width);
     clock_low();
 
     control_out(BREG_OUT_);
@@ -114,14 +127,12 @@ void loop()
       Serial.print(data);
       Serial.print(" instead of ");
       Serial.println(i);
-      delay(2000);
-    }
-    else
-    {
-      delay(100);
+      delay(error_delay);
     }
 
+    delay(view_delay);
+
     clock_high();
-    delay(100);
+    delay(pulse_width);
   }
 }
