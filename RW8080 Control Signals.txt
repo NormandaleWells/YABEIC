@@ -1,0 +1,84 @@
+1 GPRDOUTL	GPR out to data bus - low registers
+1 GPRDOUTH	GPR out to data bus - high registers
+2 GPRAOUT	GPR out to address bus
+3 GPRDINL	GPR in from data bus - low registers
+3 GPRDINH	GPR in from data bus - high registers
+3 GPRAIN	GPR in from address bus
+  GPRRSEL0	GPR read register select bit 0 - may come from IR
+  GPRRSEL1	GPR read register select bit 1 - may come from IR
+  GPRRSEL2	GPR read register select bit 2 - may come from IR
+  GPRWSEL0	GPR write register select bit 0 - may come from IR
+  GPRWSEL1	GPR write register select bit 1 - may come from IR
+  GPRWSEL2	GPR write register select bit 2 - may come from IR
+
+NOTE: GPR register selection may come from
+	bits 0,1,2 for source - bit 0 selects H/L
+	bits 3,4,5 for destination - bit 3 selects H/L
+	bits 4,5 for destination or source - both H and L
+	bit 4 for destination or source - BC or DE only
+BUT: To allow addressing of WZ pair, A/FLAGS, memory - may always need explicit select control signals
+	probably need selector signals for both input and output
+
+2 PCOUT		PC out to address bus
+4 PCIN		PC in from address bus
+5 PCINC		PC increment
+
+2 SPOUT		SP out to address bus
+4 SPIN		SP in from address bu
+5 SPINC		SP increment
+5 SPINC		SP decrement
+
+3 ACCIN		A in
+1 ACCOUT	A out
+
+3 TEMPIN	temp in (second ALU input)
+
+4 MARIN		MAR in from address bus
+3 RAMIN		RAM in from data bus
+1 RAMOUT	RAM out to data bus
+
+3 IRIN		IR in from data bus
+
+  FIN		flags in (from ALU)
+1 FOUT		flags out (to data bus)
+
+  ALUF0		ALU function bit 0
+  ALUF1
+  ALUF2
+  ALUF3		ALU function bit 3
+  ALUM		logic/arithmetic selector
+  ALUC		ALU carry in (may need to be a selector)
+1 ALUOUT	ALU out to data bus
+
+Multiplex combinations:
+MUX1 3 bits (outputs to data bus)
+	GPRDOUTH
+	GPRDOUTL
+	ACCOUT
+	FOUT
+	ALUOUT
+	RAMOUT
+
+MUX2 2 bits (outputs to address bus)
+	PCOUT
+	SPOUT
+	GPRAOUT
+
+MUX3 3 bits (inputs from data bus)
+	GPRDINH
+	GPRDINL
+	GRPAIN (listed here because we cannot input to GRP from both busses)
+	ACCIN
+	RAMIN
+	IRIN
+	TEMPIN
+
+MUX4 2 bits (inputs from address bus)
+	PCIN
+	SPIN
+	MARIN
+
+MUX5 2 bits (increment/decrement)
+	PCINC
+	SPINC
+	SPDEC

@@ -72,8 +72,8 @@ void setup()
 // found there.)
 
 const int error_delay = 20000;      // delay after invalid data found
-const int pulse_width = 100;
-const int view_delay = 1000;        // time to view results
+const int pulse_width = 10;
+const int view_delay = 100;        // time to view results
 
 void loop()
 {

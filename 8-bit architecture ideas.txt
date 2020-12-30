@@ -301,10 +301,10 @@ Group 0a - register-register transfers
 
 Group 0b
 
-	000 100 nn	IN Rn
-	000 101 nn	OUT Rn
-	000 110 nn	LD Rn,(imm)
-	000 111 nn	ST (imm),Rn
+	000 100 nn	LD Rn,imm	immediate 8-bit value
+	000 101 nn	???
+	000 110 nn	LD Rn,(imm)	immediate 8-bit address
+	000 111 nn	ST (imm),Rn	immediate 8-bit address
 
 Group 1 - other register ops
 
@@ -345,6 +345,7 @@ Group 3 - accumulator-only operations
 	subgroup 00
 		011 ooo 00
 		ooo
+			clr	clear accumulator
 			sar	shift right, bit 7 duplicated, bit 0 to C
 			shr	shift right, bit 7 gets zero, bit 0 to C
 			shl	shift left, bit 0 gets zero, bit 7 to C
@@ -366,31 +367,29 @@ Group 3 - accumulator-only operations
 
 	subgroup 10
 		011 iii 10
-			add imm		A = A + imm (immediate 3-bit value) (+1?)
-					replace with 'out' (iii = port)?
+			IN port		port is 3-bit port number
 
 	subgroup 11
 		011 iii 11
-			sub imm		A = A - imm (immediate 3-bit value) (-1?)
-					replace with 'in' (iii = port)?
+			OUT port	port is 3-bit port number
 
 Group 4 - load register
 
 	100 aap nn	LD Rn,(Rp)
 	except auto inc/dec where Rp == Rn
 
-	unused:
-		100 100 10	LD R2,(R2)+
-		100 110 10	LD R2,-(R2)
-		100 101 11	LD R3,(R3)+
-		100 111 11	LD R3,-(R3)
+	special cases (where Rp == Rn)
+		100 100 10	ADD SP,imm	[LD R2,(R2)+]
+		100 110 10	PUSH imm	[LD R2,-(R2)]
+		100 101 11	PUSH A		[LD R3,(R3)+]
+		100 111 11	POP A		[LD R3,-(R3)]
 
 Group 5 - store register
 
 	101 aap nn	ST (Rp),Rn
 	except auto inc/dec where Rp == Rn
 
-	unused:
+	unused (4 instructions):
 		101 100 10	ST (R2)+,R2
 		101 110 10	ST -(R2),R2
 		101 101 11	ST (R3)+,R3
@@ -402,8 +401,8 @@ Group 6 - more register ops (with addressing)
 
 		00 - LD A,(Rn)
 		01 - ST (Rn),A
-		10
-		11
+		10 - unused (8 instructions - would prefer addressing ops)
+		11 - unused (8 instructions - would prefer addressing ops)
 
 		no flags set
 
@@ -428,12 +427,8 @@ Group 7b
 			00 - XCHG Rn,A
 				Rn -> B, A -> Rn, B -> A (via ALU)
 			01 - CALL (Rn)
-			10 - LD Rn,imm
-			11 - stack pointer ops, depending on nn
-				00 - ADD SP,imm
-				01 - PUSH imm
-				10 - PUSH A
-				11 - POP A
+			10 - ???
+			11 - see next group
 
 	111 111 oo
 
@@ -442,7 +437,7 @@ Group 7b
 			01 - JMP imm
 			10 - LD SP,imm
 			11 - HLT
- 
+
 Alternate instruction set (inspired by James Bates)
 	A, B, R0, R1, SP(=R2), PC(=R3)
 

@@ -1,0 +1,140 @@
+Bits 0,1,2 (source) or 3,4,5 (destination)
+	000 - B
+	001 - C
+	010 - D
+	011 - E
+	100 - H
+	101 - L
+	110 - memory
+	111 - A
+Bits 4,5 - 16-bit pairs
+	00 - BC
+	01 - DE
+	10 - HL
+	11 - varies - listed as separate instruction
+Bit 4 - 16-bit pairs
+	0 - BC
+	1 - DE
+
+Bits 3,4,5 - conditions
+	CCN
+		N = 0 -> check bit clear
+		N = 1 check bit set
+		CC = 00 -> Z
+		CC = 01 -> C
+		CC = 10 -> P (replace with overflow?)
+		CC = 11 -> N
+
+MOV Rd,Rs		01DDDSSS
+	Rs -> Rd
+MOV M,Rs		01110SSS
+	Rs -> [HL]
+MOV Rd,M		01DDD110
+	[HL] -> Rd
+MOV A,Rs		01111SSS
+	Rs -> A
+MOV Rd,A		01DDD111
+	A -> Rd
+
+MVI Rd,imm		00DDD110
+	[PC+] -> Rd
+MVI A,imm		00111110
+	[PC+] -> A
+MVI M,imm		00110110
+	[PC+] -> [HL]
+
+LXI Rd,imm		00RR0001
+	[PC+] -> Rl
+	[PC+] -> Rh
+LXI SP,imm		00110001
+	[PC+] -> Z
+	[PC+] -> W
+	WZ -> SP
+
+STAX R			000R0010
+	A -> [RhRl]
+LDAX R			000R1010
+	[RhRl] -> A
+
+STA #M			00110010
+	[PC+] -> Z
+	[PC+] -> W
+	A -> [WZ]
+LDA #M
+	[PC+] -> Z
+	[PC+] -> W
+	[WZ] -> A
+
+SHLD			00100010
+	[PC+] -> Z
+	[PC+] -> W
+	L -> [WZ]
+	H -> [WZ]
+
+LHLD			00101010
+	[PC+] -> Z
+	[PC+] -> W
+	[WZ] -> L
+	[WZ] -> H
+
+XCHG			11101011
+	HL -> WZ
+	DE -> HL
+	WZ -> DE
+
+PUSH R			11RR0101
+	Rh -> [-SP]
+	Rl -> [-SP]
+PUSH PSW		11110101
+	A -> [-SP]
+	flags -> [-SP]
+POP R			11RR0001
+	[SP+] -> Rl
+	[SP+] -> Rh
+POP PSW			11110001
+	[SP+] -> flags
+	[SP+] -> A
+XTHL			11100011
+	[SP+] -> Z
+	[SP+] -> W
+	H -> [-SP]
+	L -> [-SP]
+	WZ -> HL
+SPHL			11111001
+	HL -> SP
+INX	SP		00110011
+	SP+
+DCX	SP		00111011
+	-SP
+
+JMP addr		11000011
+	[PC+] -> Z
+	[PC+] -> W
+	WZ -> PC
+J<condition>		11CCN010
+	[PC+] -> Z
+	[PC+] -> W
+	if <condition> ZW -> PC
+		may use comb. logic ANDed with PCIN signal
+PCHL			11101001
+	HL -> PC
+
+CALL			11001101
+	PC -> WZ
+	WZ+
+	WZ+
+	W -> [-SP]
+	Z -> [-SP]
+	[PC+] -> Z
+	[PC+] -> W
+	WZ -> PC
+C<condition>
+	PC -> WZ
+	WZ+
+	WZ+
+	if (<condition)
+		W -> [-SP]
+		Z -> [-SP]
+		[PC+] -> Z
+		[PC+] -> W
+	WZ -> PC
