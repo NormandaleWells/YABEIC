@@ -8,6 +8,11 @@ Perhaps I should refer to this instead as a /r/beneater inspired project;
 it's the folks hanging out there that inspired me to create my own design
 (despite being nowhere near ready to do so!).
 
+Here are two other YouTube playlists that provided ideas and inspiration:
+
+1. [My Ben Eater inspired homemade 8-bit CPU](https://www.youtube.com/watch?v=gqYFT6iecHw&list=PL_i7PfWMNYobSPpg1_voiDe6qBcjvuVui)
+2. [Making an 8 Bit pipelined CPU](https://www.youtube.com/watch?v=3iHag4k4yEg&list=PLFhc0MFC8MiCDOh3cGFji3qQfXziB9yOw)
+
 ## So how is this one different?
 
 It seems that each person who creates their own BE-inspired 8-bit machine
@@ -87,7 +92,7 @@ so I still need to speed this up a little more.
 BTW, despite accessing the ports directly, the code is portable among different types
 of Arduinos.
 
-Ironically, even the clock will probably be the last piece incorporated into the computer,
+Ironically, even though the clock will probably be the last piece incorporated into the computer,
 it was the first piece actually built.  I wanted to play around with Julian Ilett's
 clock module, and found it will work fine for my purposes.  Depending on the
 capacitor I use, I can get either 1.7KHz (with a 1 uF cap), or about 12KHz (with a 0.1 uF cap).
@@ -110,7 +115,7 @@ Most designs allow a certain number of micro-ops per instruction.  Ben's design 
 that many cycles no matter what; others have incorporated a "reset sequence" control bit
 that can be used to reset the micro-op sequencer early.
 
-My plan is to have 1K micro-ops total, with 48 bit each.  The last 10 bits indicate the
+My plan is to have 1K micro-ops total, with 40 bit each.  The last 10 bits indicate the
 index of the next micro-op.  There will be some special logic that maps sequence index
 0 to micro-op 0, which will be the start of the fetch cycle.  Likewise, sequence
 index 2 will always map to something based on the instruction register (perhaps
@@ -131,6 +136,8 @@ The address calculator will use a pair of '283 adder chips.  Unless I think
 of a better way, the second input (0, 1, -1, or the offset) will be
 selected by enabling one of 4 '245s, 3 of which are hard-coded to the
 constants, and the last of which is fed from the data bus.
+
+Having a separate address bus may even obviate the need for an MAR.
 
 ### Minimal I/O
 
