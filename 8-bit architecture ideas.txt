@@ -291,6 +291,8 @@ Branch condition always in bits 0,1
 
 Group 0a - register-register transfers
 
+	no flags are affected
+
 	000 0dd ss	MOV Rd,Rs
 
 	special cases
@@ -301,8 +303,10 @@ Group 0a - register-register transfers
 
 Group 0b
 
+	no flags are affected
+
 	000 100 nn	LD Rn,imm	immediate 8-bit value
-	000 101 nn	???
+	000 101 nn	???		must use immediate operand
 	000 110 nn	LD Rn,(imm)	immediate 8-bit address
 	000 111 nn	ST (imm),Rn	immediate 8-bit address
 
@@ -399,11 +403,15 @@ Group 6 - more register ops (with addressing)
 
 	110 aap oo
 
-		00 - LD A,(Rn)
-		01 - ST (Rn),A
-		10 - unused (8 instructions - would prefer addressing ops)
+		00 - LD A,(Rp)
+		01 - ST (Rp),A
+		10 - LDPM A,(Rp)	- load from program memory
 		11 - unused (8 instructions - would prefer addressing ops)
-
+			110 00p 11	LD R0,(Rp+A)
+			110 01p 11	LD R1,(Rp+A)
+			110 10p 11	ST (Rp+A),R0
+			110 11p 11	ST (Rp+A),R1
+				
 		no flags set
 
 Group 7a branch instructions
