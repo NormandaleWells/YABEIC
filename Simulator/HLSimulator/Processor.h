@@ -22,7 +22,9 @@ class Processor
 {
 public:
 
-	Processor(uint8_t program[256]) : state{ program } {}
+	Processor(Memory program, IO_handler io_handler)
+		: state{ program }, io_handler{ io_handler }
+	{}
 
 	Run_state run();
 	Run_state step();
@@ -39,17 +41,21 @@ private:
 
 	Run_state process_unimplemented(uint8_t op_code);
 
-	// Group 0a
+	// Group 0.0
 	Run_state process_nop(uint8_t op_code);
 	Run_state process_mov_reg_reg(uint8_t op_code);
 	Run_state process_ret(uint8_t op_code);
 	Run_state process_stc(uint8_t op_code);
 	Run_state process_clc(uint8_t op_code);
 	
-	// Group 0b
+	// Group 0.1
 	Run_state process_ld_imm(uint8_t op_code);
 	Run_state process_ld_imm_ind(uint8_t op_code);
 	Run_state process_st_imm_ind(uint8_t op_code);
+	Run_state process_ld_acc_imm(uint8_t op_code);
+	Run_state process_ld_sp_imm(uint8_t op_code);
+	Run_state process_jmp_imm(uint8_t op_code);
+	Run_state process_call_imm(uint8_t op_code);
 
 	// Group 1
 	Run_state process_mov_reg_acc(uint8_t op_code);
@@ -71,6 +77,33 @@ private:
 	Run_state process_and_acc_reg(uint8_t op_code);
 	Run_state process_or_acc_reg(uint8_t op_code);
 	Run_state process_cmp_acc_reg(uint8_t op_code);
+
+	// Group 3.00
+	Run_state process_clr_acc(uint8_t op_code);
+	Run_state process_sar_acc(uint8_t op_code);
+	Run_state process_shr_acc(uint8_t op_code);
+	Run_state process_shl_acc(uint8_t op_code);
+	Run_state process_ror_acc(uint8_t op_code);
+	Run_state process_rol_acc(uint8_t op_code);
+	Run_state process_rcr_acc(uint8_t op_code);
+	Run_state process_rcl_acc(uint8_t op_code);
+
+	// Group 3.01
+	Run_state process_add_acc_imm(uint8_t op_code);
+	Run_state process_sub_acc_imm(uint8_t op_code);
+	Run_state process_adc_acc_imm(uint8_t op_code);
+	Run_state process_sbb_acc_imm(uint8_t op_code);
+	Run_state process_xor_acc_imm(uint8_t op_code);
+	Run_state process_and_acc_imm(uint8_t op_code);
+	Run_state process_or_acc_imm(uint8_t op_code);
+	Run_state process_cmp_acc_imm(uint8_t op_code);
+
+	// Group 3.10
+	Run_state process_in_port(uint8_t op_code);
+
+	// Group 3.11
+	Run_state process_out_port(uint8_t op_code);
+
 
 	IO_handler& io_handler;
 	Processor_state state;

@@ -35,18 +35,18 @@ Processor::Opcode_processor Processor::opcode_fns[256] =
 	Processor::process_ld_imm,			// 0b000'1'00'01 LD R1,imm
 	Processor::process_ld_imm,			// 0b000'1'00'10 LD R2,imm
 	Processor::process_ld_imm,			// 0b000'1'00'11 LD R3,imm
-	Processor::process_unimplemented,	// 0b000'1'01'00
-	Processor::process_unimplemented,	// 0b000'1'01'01
-	Processor::process_unimplemented,	// 0b000'1'01'10
-	Processor::process_unimplemented,	// 0b000'1'01'11
-	Processor::process_ld_imm_ind,		// 0b000'1'10'00 LD R0,(imm)
-	Processor::process_ld_imm_ind,		// 0b000'1'10'01 LD R1,(imm)
-	Processor::process_ld_imm_ind,		// 0b000'1'10'10 LD R2,(imm)
-	Processor::process_ld_imm_ind,		// 0b000'1'10'11 LD R3,(imm)
-	Processor::process_st_imm_ind,		// 0b000'1'11'00 ST (imm),R0
-	Processor::process_st_imm_ind,		// 0b000'1'11'00 ST (imm),R1
-	Processor::process_st_imm_ind,		// 0b000'1'11'00 ST (imm),R2
-	Processor::process_st_imm_ind,		// 0b000'1'11'00 ST (imm),R3
+	Processor::process_ld_imm_ind,		// 0b000'1'01'00 LD R0,(imm)
+	Processor::process_ld_imm_ind,		// 0b000'1'01'01 LD R1,(imm)
+	Processor::process_ld_imm_ind,		// 0b000'1'01'10 LD R2,(imm)
+	Processor::process_ld_imm_ind,		// 0b000'1'01'11 LD R3,(imm)
+	Processor::process_st_imm_ind,		// 0b000'1'10'00 ST (imm),R0
+	Processor::process_st_imm_ind,		// 0b000'1'10'01 ST (imm),R1
+	Processor::process_st_imm_ind,		// 0b000'1'10'10 ST (imm),R2
+	Processor::process_st_imm_ind,		// 0b000'1'10'11 ST (imm),R3
+	Processor::process_ld_acc_imm,		// 0b000'1'11'00 LD A,imm
+	Processor::process_ld_sp_imm,		// 0b000'1'11'00 LD SP,imm
+	Processor::process_jmp_imm,			// 0b000'1'11'00 JMP imm
+	Processor::process_call_imm,		// 0b000'1'11'00 CALL imm
 
 	// Group 1
 	// This group contains other register ops
@@ -118,14 +118,52 @@ Processor::Opcode_processor Processor::opcode_fns[256] =
 	Processor::process_cmp_acc_reg,		// 0b010'111'02 CMP A,R2
 	Processor::process_cmp_acc_reg,		// 0b010'111'03 CMP A,R3
 
+	// Group 3.00
+	Processor::process_clr_acc,			// 0b011'00'000
+	Processor::process_sar_acc,			// 0b011'00'001
+	Processor::process_shr_acc,			// 0b011'00'010
+	Processor::process_shl_acc,			// 0b011'00'011
+	Processor::process_ror_acc,			// 0b011'00'100
+	Processor::process_rol_acc,			// 0b011'00'101
+	Processor::process_rcr_acc,			// 0b011'00'110
+	Processor::process_rcl_acc,			// 0b011'00'111
 
-	// Group 3
+	// Group 3.01
+	Processor::process_add_acc_imm,		// 0b011'01'000
+	Processor::process_sub_acc_imm,		// 0b011'01'001
+	Processor::process_adc_acc_imm,		// 0b011'01'010
+	Processor::process_sbb_acc_imm,		// 0b011'01'011
+	Processor::process_xor_acc_imm,		// 0b011'01'100
+	Processor::process_and_acc_imm,		// 0b011'01'101
+	Processor::process_or_acc_imm,		// 0b011'01'110
+	Processor::process_cmp_acc_imm,		// 0b011'01'111
+
+	// Group 3.10
+	Processor::process_in_port,			// 0b011'10'000
+	Processor::process_in_port,			// 0b011'10'001
+	Processor::process_in_port,			// 0b011'10'010
+	Processor::process_in_port,			// 0b011'10'011
+	Processor::process_in_port,			// 0b011'10'100
+	Processor::process_in_port,			// 0b011'10'101
+	Processor::process_in_port,			// 0b011'10'110
+	Processor::process_in_port,			// 0b011'10'111
+
+	// Group 3.11
+	Processor::process_out_port,		// 0b011'11'000
+	Processor::process_out_port,		// 0b011'11'001
+	Processor::process_out_port,		// 0b011'11'010
+	Processor::process_out_port,		// 0b011'11'011
+	Processor::process_out_port,		// 0b011'11'100
+	Processor::process_out_port,		// 0b011'11'101
+	Processor::process_out_port,		// 0b011'11'110
+	Processor::process_out_port,		// 0b011'11'111
+
 	// Group 4
 	// Group 5
 	// Group 6
 	// Group 7
 
-	Processor::process_unimplemented,
+	Processor::process_unimplemented
 };
 
 Run_state Processor::run()
@@ -142,7 +180,7 @@ Run_state Processor::run()
 
 Run_state Processor::step()
 {
-	uint8_t op_code = state.p_mem[state.pc];
+	uint8_t op_code = state.p_mem[state.pc++];
 	Opcode_processor proc = opcode_fns[op_code];
 	return std::invoke(proc, this, op_code);
 }
@@ -163,6 +201,69 @@ Run_state Processor::process_unimplemented(uint8_t op_code)
 	uint8_t group = (op_code & 0b111'00000) >> 5;
 	ss << "Unrecognized group " << group << "opcode: " << op_code;
 	throw std::runtime_error(ss.str());
+}
+
+static bool calc_overflow(uint_fast16_t a, uint_fast16_t b, uint_fast16_t res)
+{
+	// We have overflow if both the operands were the same sign,
+	// and the result is the opposite sign.  The truth table is
+	// this (a, b, and res are bit 7 of arguments a, b, and res):
+	//
+	//	a   b   res	 of | a^res   b^res   a^res and b^res
+	//	0   0    0   0  |   0       0            0
+	//	0   0    1   1  |   1       1            1
+	//	0   1    0   0  |   0       1            0
+	//	0   1    1   0  |   1       0            0
+	//	1   0    0   0  |   1       0            0
+	//	1   0    1   0  |   0       1            0
+	//	1   1    0   1  |   1       1            1
+	//	1   1    1   0  |   0       0            0
+
+	return ((a & 0x80) ^ (res & 0x80)) & ((b & 0x80) ^ (res & 0x80)) != 0;
+}
+
+static uint8_t add_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state, bool use_carry)
+{
+	uint_fast16_t res = a + b + (use_carry && state.get_carry()) ? 1 : 0;
+	state.set_zero(res);
+	state.set_carry(res);
+	state.set_overflow(calc_overflow(a, b, res));
+	state.set_negative(res);
+	return static_cast<uint8_t>(res);
+}
+
+static uint8_t sub_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state, bool use_carry)
+{
+	uint_fast16_t res = a - b - (use_carry && state.get_carry()) ? 1 : 0;
+	state.set_zero(res);
+	state.set_carry(res);
+	state.clear_overflow();
+	state.set_negative(res);
+	return static_cast<uint8_t>(res);
+}
+
+static uint8_t xor_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state)
+{
+	uint_fast16_t res = a ^ b;
+	state.set_zero(res);
+	state.set_negative(res);
+	return static_cast<uint8_t>(res);
+}
+
+static uint8_t and_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state)
+{
+	uint_fast16_t res = a & b;
+	state.set_zero(res);
+	state.set_negative(res);
+	return static_cast<uint8_t>(res);
+}
+
+static uint8_t or_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state)
+{
+	uint_fast16_t res = a | b;
+	state.set_zero(res);
+	state.set_negative(res);
+	return static_cast<uint8_t>(res);
 }
 
 Run_state Processor::process_nop(uint8_t op_code)
@@ -217,6 +318,35 @@ Run_state Processor::process_st_imm_ind(uint8_t op_code)
 	uint8_t reg = op_code & 0b000'0'00'11;
 	uint8_t imm = state.p_mem[state.pc++];
 	state.d_mem[imm] = state.gpr[reg];
+	return Run_state::running;
+}
+
+Run_state Processor::process_ld_acc_imm(uint8_t op_code)
+{
+	uint8_t imm = state.p_mem[state.pc++];
+	state.a = imm;
+	return Run_state::running;
+}
+
+Run_state Processor::process_ld_sp_imm(uint8_t op_code)
+{
+	uint8_t imm = state.p_mem[state.pc++];
+	state.sp = imm;
+	return Run_state::running;
+}
+
+Run_state Processor::process_jmp_imm(uint8_t op_code)
+{
+	uint8_t imm = state.p_mem[state.pc++];
+	state.pc = imm;
+	return Run_state::running;
+}
+
+Run_state Processor::process_call_imm(uint8_t op_code)
+{
+	uint8_t imm = state.p_mem[state.pc++];
+	state.d_mem[--state.sp] = state.pc;
+	state.pc = imm;
 	return Run_state::running;
 }
 
@@ -278,31 +408,6 @@ Run_state Processor::process_st_sp_off_reg(uint8_t op_code)
 	return Run_state::running;
 }
 
-static bool calc_overflow(uint_fast16_t a, uint_fast16_t b, uint_fast16_t res)
-{
-	return ((a & 0x80) ^ (res & 0x80)) & ((b & 0x80) ^ (res & 0x80)) != 0;
-}
-
-static uint8_t add_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state, bool use_carry)
-{
-	uint_fast16_t res = a + b + (use_carry && state.get_carry()) ? 1 : 0;
-	state.set_carry(res & 0x0100 != 0);
-	state.set_zero(res & 0x00FF == 0);
-	state.set_overflow(calc_overflow(a, b, res));
-	state.set_negative(res & 0x80 != 0);
-	return static_cast<uint8_t>(res);
-}
-
-static uint8_t sub_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state, bool use_carry)
-{
-	uint_fast16_t res = a - b - (use_carry && state.get_carry()) ? 1 : 0;
-	state.set_carry(res & 0x0100 != 0);
-	state.set_zero(res & 0x00FF == 0);
-	state.set_overflow(calc_overflow(a, b, res));
-	state.set_negative(res & 0x80 != 0);
-	return static_cast<uint8_t>(res);
-}
-
 Run_state Processor::process_add_acc_reg(uint8_t op_code)
 {
 	uint8_t reg = op_code & 0b000'000'11;
@@ -331,14 +436,6 @@ Run_state Processor::process_sbb_acc_reg(uint8_t op_code)
 	return Run_state::running;
 }
 
-static uint8_t xor_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state)
-{
-	uint_fast16_t res = a ^ b;
-	state.set_zero(res & 0x00FF == 0);
-	state.set_negative(res & 0x0080 != 0);
-	return static_cast<uint8_t>(res);
-}
-
 Run_state Processor::process_xor_acc_reg(uint8_t op_code)
 {
 	uint8_t reg = op_code & 0b000'000'11;
@@ -346,27 +443,11 @@ Run_state Processor::process_xor_acc_reg(uint8_t op_code)
 	return Run_state::running;
 }
 
-static uint8_t and_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state)
-{
-	uint_fast16_t res = a & b;
-	state.set_zero(res & 0x00FF == 0);
-	state.set_negative(res & 0x0080 != 0);
-	return static_cast<uint8_t>(res);
-}
-
 Run_state Processor::process_and_acc_reg(uint8_t op_code)
 {
 	uint8_t reg = op_code & 0b000'000'11;
 	state.a = and_op(state.a, state.gpr[reg], state);
 	return Run_state::running;
-}
-
-static uint8_t or_op(uint_fast16_t a, uint_fast16_t b, Processor_state& state)
-{
-	uint_fast16_t res = a | b;
-	state.set_zero(res & 0x00FF == 0);
-	state.set_negative(res & 0x0080 != 0);
-	return static_cast<uint8_t>(res);
 }
 
 Run_state Processor::process_or_acc_reg(uint8_t op_code)
@@ -381,4 +462,162 @@ Run_state Processor::process_cmp_acc_reg(uint8_t op_code)
 	uint8_t reg = op_code & 0b000'000'11;
 	sub_op(state.a, state.gpr[reg], state, false);
 	return Run_state::running;
+}
+
+Run_state Processor::process_clr_acc(uint8_t op_code)
+{
+	state.a = 0;
+	return Run_state::running;
+}
+
+Run_state Processor::process_sar_acc(uint8_t op_code)
+{
+	// The top bit is duplicated.  The low bit becomes
+	// the carry.  This allows a multi-byte int to
+	// be shifted arithmetically using sar for the MSByte,
+	// and rcr for the subsequent bytes.
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = a >> 1;
+	res |= (a & 0x80);
+	res |= ((a & 0x01) << 8);
+	state.set_zero(res);
+	state.set_carry(res);
+	state.clear_overflow();
+	state.set_negative(res);
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_shr_acc(uint8_t op_code)
+{
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = a >> 1;
+	state.set_zero(res);
+	state.clear_carry();
+	state.clear_overflow();
+	state.clear_negative();
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_shl_acc(uint8_t op_code)
+{
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = a >> 1;
+	state.set_zero(res);
+	state.set_carry(res);
+	state.set_overflow(calc_overflow(a, a, res));
+	state.set_negative(res);
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_ror_acc(uint8_t op_code)
+{
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = (a >> 1) | (a & 0x01 << 7) | (a & 0x01 << 8);
+	state.set_zero(res);
+	state.set_carry(res);
+	state.clear_overflow();
+	state.set_negative(res);
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_rol_acc(uint8_t op_code)
+{
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = (a << 1) | (a & 0x100 >> 8);
+	state.set_zero(res);
+	state.set_carry(res);
+	state.set_overflow(calc_overflow(a, a, res));
+	state.set_negative(res);
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_rcr_acc(uint8_t op_code)
+{
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = (a >> 1) | (a & 0x01 << 8) | (state.get_carry() ? 0x80 : 0);
+	state.set_zero(res);
+	state.set_carry(res);
+	state.clear_overflow();
+	state.set_negative(res);
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_rcl_acc(uint8_t op_code)
+{
+	uint_fast16_t a = state.a;
+	uint_fast16_t res = (a << 1) | (state.get_carry() ? 1 : 0);
+	state.set_zero(res);
+	state.set_carry(res);
+	state.set_overflow(calc_overflow(a, a, res));
+	state.set_negative(res);
+	state.a = static_cast<uint8_t>(res);
+	return Run_state::running;
+}
+
+Run_state Processor::process_add_acc_imm(uint8_t op_code)
+{
+	state.a = add_op(state.a, state.p_mem[state.pc++], state, false);
+	return Run_state::running;
+}
+
+Run_state Processor::process_sub_acc_imm(uint8_t op_code)
+{
+	state.a = sub_op(state.a, state.p_mem[state.pc++], state, false);
+	return Run_state::running;
+}
+
+Run_state Processor::process_adc_acc_imm(uint8_t op_code)
+{
+	state.a = add_op(state.a, state.p_mem[state.pc++], state, true);
+	return Run_state::running;
+}
+
+Run_state Processor::process_sbb_acc_imm(uint8_t op_code)
+{
+	state.a = sub_op(state.a, state.p_mem[state.pc++], state, true);
+	return Run_state::running;
+}
+
+Run_state Processor::process_xor_acc_imm(uint8_t op_code)
+{
+	state.a = xor_op(state.a, state.p_mem[state.pc++], state);
+	return Run_state::running;
+}
+
+Run_state Processor::process_and_acc_imm(uint8_t op_code)
+{
+	state.a = and_op(state.a, state.p_mem[state.pc++], state);
+	return Run_state::running;
+}
+
+Run_state Processor::process_or_acc_imm(uint8_t op_code)
+{
+	state.a = or_op(state.a, state.p_mem[state.pc++], state);
+	return Run_state::running;
+}
+
+Run_state Processor::process_cmp_acc_imm(uint8_t op_code)
+{
+	state.a = sub_op(state.a, state.p_mem[state.pc++], state, false);
+	return Run_state::running;
+}
+
+Run_state Processor::process_in_port(uint8_t op_code)
+{
+	uint8_t device = op_code & 0b000'00'111;
+	state.a = io_handler.in(device);
+	return Run_state();
+}
+
+Run_state Processor::process_out_port(uint8_t op_code)
+{
+	uint8_t device = op_code & 0b000'00'111;
+	io_handler.out(device, state.a);
+	return Run_state();
 }
