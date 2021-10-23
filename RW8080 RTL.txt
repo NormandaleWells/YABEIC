@@ -68,13 +68,13 @@ LDA #M
 SHLD			00100010
 	[PC+] -> Z
 	[PC+] -> W
-	L -> [WZ]
+	L -> [WZ++]
 	H -> [WZ]
 
 LHLD			00101010
 	[PC+] -> Z
 	[PC+] -> W
-	[WZ] -> L
+	[WZ++] -> L
 	[WZ] -> H
 
 XCHG			11101011
@@ -85,25 +85,32 @@ XCHG			11101011
 PUSH R			11RR0101
 	Rh -> [-SP]
 	Rl -> [-SP]
+
 PUSH PSW		11110101
 	A -> [-SP]
 	flags -> [-SP]
+
 POP R			11RR0001
 	[SP+] -> Rl
 	[SP+] -> Rh
+
 POP PSW			11110001
 	[SP+] -> flags
 	[SP+] -> A
+
 XTHL			11100011
 	[SP+] -> Z
 	[SP+] -> W
 	H -> [-SP]
 	L -> [-SP]
 	WZ -> HL
+
 SPHL			11111001
 	HL -> SP
+
 INX	SP		00110011
 	SP+
+
 DCX	SP		00111011
 	-SP
 
@@ -111,11 +118,13 @@ JMP addr		11000011
 	[PC+] -> Z
 	[PC+] -> W
 	WZ -> PC
+
 J<condition>		11CCN010
 	[PC+] -> Z
 	[PC+] -> W
 	if <condition> ZW -> PC
 		may use comb. logic ANDed with PCIN signal
+
 PCHL			11101001
 	HL -> PC
 
