@@ -22,7 +22,7 @@ class Processor
 {
 public:
 
-	Processor(Memory program, IO_handler io_handler)
+	Processor(Memory program, IO_handler & io_handler)
 		: state{ program }, io_handler{ io_handler }
 	{}
 
