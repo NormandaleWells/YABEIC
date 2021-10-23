@@ -190,6 +190,9 @@ Counter ICs
 
 	CD74HCT163E	synchronous presettable 4-bit binary counter, synchronous clear
 
+	SN74LS169BN	synchronous presettable 4-bit up/down binary counter
+	SN74LS169BNE4		LS only, but potentially useful
+
 	CD74HCT191E	synchronous presettable up/down 4-bit binary counter
 
 	CD74HCT193E	synchronous presettable up/down 4-bit binary counter, clear

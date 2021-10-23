@@ -28,11 +28,11 @@ struct Processor_state
 
 	void set_zero(uint_fast16_t result)
 	{
-		if (result & 0xFF == 0) set_zero(); else clear_zero();
+		if ((result & 0xFF) == 0) set_zero(); else clear_zero();
 	}
 	void set_carry(uint_fast16_t result)
 	{
-		if (result & 0x100 != 0) set_carry(); else clear_carry();
+		if ((result & 0x100) != 0) set_carry(); else clear_carry();
 	}
 	void set_overflow(bool c)
 	{
@@ -40,7 +40,7 @@ struct Processor_state
 	}
 	void set_negative(uint_fast16_t result)
 	{
-		if (result & 0x80 != 0) set_negative(); else clear_zero();
+		if ((result & 0x80) != 0) set_negative(); else clear_zero();
 	}
 
 	bool get_zero()     { return (flags & zero)     != 0; }

@@ -117,6 +117,7 @@ implementation notes:
 		use 377 for R0, R1 (needs 245)
 		use 193x2 for R2, R3, SP (needs 245)
 			presettable
+			logic is tricky - requires counter signals high, count on low-high transition
 
 	IR	use 377 - no 245 necessary
 
@@ -216,6 +217,8 @@ implementation notes:
 			offset (0, 1, -1, or data bus contents (for offsets)
 		MAR connected only to address bus
 		RAM connected only to data bus
+		no need for MAR?  Can address bus feed memory directly?
+			would save one cycle for many operations, like fetch
 
 control signals:
 
@@ -398,10 +401,10 @@ Group 5 - store register
 	except auto inc/dec where Rp == Rn
 
 	unused (4 instructions):
-		101 100 10	ST (R2)+,R2
-		101 110 10	ST -(R2),R2
-		101 101 11	ST (R3)+,R3
-		101 111 11	ST -(R3),R3
+		101 100 10	MOV R2,PC	[ST (R2)+,R2]
+		101 110 10	???		[ST -(R2),R2]
+		101 101 11	MOV R3,PC	[ST (R3)+,R3]
+		101 111 11	???		[ST -(R3),R3]
 
 Group 6 - more register ops (with addressing)
 
@@ -426,8 +429,8 @@ Group 7a branch instructions
 		oo
 			00 - BRc imm
 			01 - BRNc imm
-			10 - SKc
-			11 - SKNc
+			10 - SKc	next instruction must be one byte
+			11 - SKNc	next instruction must be one byte
 		c = C, Z, N, O
 		destination is immediate byte
 
@@ -449,6 +452,11 @@ Group 7b
 			01 - ???
 			10 - ???
 			11 - HLT
+
+
+
+
+============================================================
 
 Alternate instruction set (inspired by James Bates)
 	A, B, R0, R1, SP(=R2), PC(=R3)
@@ -477,7 +485,7 @@ MOV group
 
 		00 0x 01 00	MOV Rg,off(R0)
 		00 0x 01 01	MOV Rg,off(R1)
-		00 0x 01 10	MOV Rg,off(SP)	access to one local variables
+		00 0x 01 10	MOV Rg,off(SP)	access to local variables
 		00 0x 01 11	MOV Rg,addr	would be MOV Rg,off(PC)
 
 		00 0x 10 00	MOV Rg,(R0)+
