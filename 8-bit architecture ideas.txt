@@ -292,7 +292,9 @@ Registers always in bits 0,1 or 2,3 (for addressing, bit 3 ORed high)
 Addressing mode always in bits 3,4
 Branch condition always in bits 0,1
 
-Group 0a - register-register transfers
+Group 0.0 - register-register transfers
+
+	no flags are affected
 
 	000 0dd ss	MOV Rd,Rs
 
@@ -302,12 +304,17 @@ Group 0a - register-register transfers
 	000 010 10 	STC (MOV R2,R2)
 	000 011 11 	CLC (MOV R3,R3)
 
-Group 0b
+Group 0.1 - operations with immediate operands
+
+	no flags are affected
 
 	000 100 nn	LD Rn,imm	immediate 8-bit value
-	000 101 nn	LDII Rn,off	Rn <- (PC + off) - load from program memory
-	000 110 nn	LD Rn,(imm)	immediate 8-bit address
-	000 111 nn	ST (imm),Rn	immediate 8-bit address
+	000 101 nn	LD Rn,(imm)	immediate 8-bit address
+	000 110 nn	ST (imm),Rn	immediate 8-bit address
+	000 111 00	LD A,imm	immediate 8-bit value
+	000 111 01	LD SP,imm	immediate 8-bit value
+	000 111 10	JMP imm		immediate 8-bit value
+	000 111 11	CALL imm	immediate 8-bit value
 
 Group 1 - other register ops
 
@@ -342,11 +349,11 @@ Group 2 - ALU operations
 
 Group 3 - accumulator-only operations
 
-	011 ooo gg (gg - subgroup)
-	all flags set on each operation
+	011 gg ooo (gg - subgroup)
 
 	subgroup 00
-		011 ooo 00
+		all flags set on each operation
+		011 00 ooo
 		ooo
 			clr	clear accumulator
 			sar	shift right, bit 7 duplicated, bit 0 to C
@@ -357,7 +364,8 @@ Group 3 - accumulator-only operations
 			rcr	rotate right, C to bit 7, bit 0 to C
 			rcl	rotate left, C to bit 0, bit 7 to C
 	subgroup 01
-		011 ooo 01 (imm = immediate 8-bit value)
+		all flags set on each operation
+		011 01 ooo (imm = immediate 8-bit value)
 		ooo
 			add imm		A = A + imm
 			sub imm		A = A - imm
@@ -369,11 +377,11 @@ Group 3 - accumulator-only operations
 			cmp imm		A - imm (flags only)
 
 	subgroup 10
-		011 iii 10
+		011 10 iii
 			IN port		port is 3-bit port number
 
 	subgroup 11
-		011 iii 11
+		011 11 iii
 			OUT port	port is 3-bit port number
 
 Group 4 - load register
@@ -404,9 +412,13 @@ Group 6 - more register ops (with addressing)
 
 		00 - LD A,(Rp)
 		01 - ST (Rp),A
-		10 - LP A,(Rp) - load from program memory
-		11 - LEA A,(Rp)
-
+		10 - LDPM A,(Rp)	- load from program memory
+		11 - unused (8 instructions - would prefer addressing ops)
+			110 00p 11	LD R0,(Rp+A)
+			110 01p 11	LD R1,(Rp+A)
+			110 10p 11	ST (Rp+A),R0
+			110 11p 11	ST (Rp+A),R1
+				
 		no flags set
 
 Group 7a branch instructions
@@ -436,9 +448,9 @@ Group 7b
 	111 111 oo
 
 		oo
-			00 - CALL imm
-			01 - JMP imm
-			10 - LD SP,imm
+			00 - ???
+			01 - ???
+			10 - ???
 			11 - HLT
 
 
