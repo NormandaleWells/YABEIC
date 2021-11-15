@@ -107,9 +107,16 @@ implementation notes:
 				no clock enable - requires separate clk AND enable circuit
 			use 377 / 245 (same as James Bates - https://www.youtube.com/watch?v=AALVh39X3xw
 
+	T	temporary register used for some addressing
+			e.g. CALL, immediate offset (LD R0,(R2+imm), indirect address (LDI R0,(imm))
+			Can't use DB as input to AG!  Need DB to have data being addressed!
+			Offset is two-step: load T, read mem
+			74HCT377
+
 	Rn,SP	74LS169 4-bit synchronous binary up/down counter
 			not available as HCT - use 74HCT191 or 74HCT193
 				these are IT chips w/ CD prefix - what is that?
+			but easier to work with - see below re: 193
 		requires 74LS245 octal bus tranceiver
 		74HCT670 - 4x4 bits, independent read/write
 			would allow R0-R3 in 2 chips (3 with transceiver)
@@ -126,7 +133,14 @@ implementation notes:
 			74HCT193? 193 is up/down w/ clear
 			connect TC of low-order to TE of high-order to cascade
 				see James Bates Part 5 ~18:00
+			asynchronous reset (163 has sync reset)
 		requires 74HCT245 octal bus tranceiver
+
+	Control Unit
+		74HCT163 - counter (like 161) with sync. reset
+			How does James Bates get away with using the 161 here?
+			Should be resetting immediately when control unit signals a reset.
+			Should wait for clock signal.
 
 	ALU	74LS181 - provides all required ALU ops
 		not available as HCT
@@ -203,6 +217,7 @@ implementation notes:
 
 	conditional branches
 		decode 2-bit field to 1 of 4, and with flags bits, OR together
+			feed into logic signal to inhibit/enable PC write
 		feed to control logic as a single bit
 
 	use separate adder for PC,SP,Rn offset ops?
@@ -220,7 +235,61 @@ implementation notes:
 		no need for MAR?  Can address bus feed memory directly?
 			would save one cycle for many operations, like fetch
 
+	Address generation unit (AGU)
+		simple adder 
+			adder - first input is a register (R2, R3, SP, PC)
+			second is selected among 0,-1,T (immediate offset)
+			7HCT283
+		don't need constant 1 since we pre-increment the register
+
+	Control Unit
+		FLAG signal is always generated from b1b0 of IR, b2 from IR (NOT)
+		IR(b1b0) demultiplexed into ~IZ ~IC ~IO ~IN
+		conditional jumps - 3 inputs, 1 output
+			~PCDI	- read PC from data bus
+			~PCIF	- only read PC if flags (active low to simplify logic)
+			FLAG	- flag from IR combined with flags reg
+			~SPE	- input to 161/163
+				~PCDI	0	0	0	0	1	1	1	1
+				~PCIF	0	0	1	1	x	x	x	x
+				FLAG	0	1	x	x	x	x	x	x
+				----
+				~SPE	1	0	0	0	1	1	1	1
+			~SPE = ~PCDI or (~PCIF nor FLAG)
+		for each flag (x in ZCON)
+			~xI	- flag from instruction (decoded)
+				NOTE: 139 has inverted output
+			xF	- flag from flags register
+			NOT	- bit from instruction
+			xT	- 1=jump due to this flag, 0=no jump
+				~xI	0	0	0	0	1	1	1	1
+				xF	0	0	1	1	x	x	x	x
+				NOT	0	1	0	1	x	x	x	x
+				----
+				xT	0	1	1	0	0	0	0	0
+			xT = (xF xor NOT) and not ~xI
+			FLAG = or (ZT or CT or OT or NT)
+				input into conditional jump
+				xnor is 74LS266 (if needed)
+		for ~xINC and ~xDEC
+			74ls169 has ~ENP and U/~D pins (~ENT cascades from ~RC0)
+			~ENP = ~xINC and ~xDEC
+			U/~D = ~xDEC
+		See James Bates part 9, 34:00 for need for latches to EEPROM address
+			loading IR will change the EEPROM address
+			uses 74HCT273
+			see also David Courtney's videos
+
 control signals:
+
+	Original thought was to use the instruction bits wherever possible
+	to select registers, etc.  However, this requires a LOT of demultiplexers
+	since, for example, b1b0 may either a source or destination reg, and
+	the address registers often have an implicit to select R2 or R3. Also,
+	PC and SP don't fit this model anyway.
+
+	Anyway, with this original way of thinking, the control signals would
+	be something like this:
 
 	PCO	PC out
 	PCI	PC in
@@ -257,7 +326,66 @@ control signals:
 	can multiplex outputs (PCO, RO, AO, SPO, RAMO, FO)
 	can multiplex inputs (PCI, RI, AI, SPI, RI, BI, RAMI, MARI, FI)
 
-	combinatorial logic to map 3 bits of ALU ops to 6 ALU inputs?
+	Alternate set, not using IR bits to select registers:
+
+	Data bus out (4 bits, multiplexed)
+	use 2x138 - all enables are active low (245)
+		NODO (= 0)
+		ADO
+		R0DO
+		R1DO
+		R2DO
+		R3DO
+		SPDO
+		PCDO
+		TDO
+		RAMDO
+		ROMDO
+	Data bus in (4 bits, multiplexed)
+	use 2x138 - all loads are active low
+		NODI (= 0)
+		ADI
+		BDI
+		R0DI
+		R1DI
+		R2DI
+		R3DI
+		SPDI
+		PCDI
+		TDI
+		RAMDI
+		IRDI
+	Address bus out (3 bits, multiplexed)
+	use 1x138 - all enables are active low
+		R2AO
+		R3AO
+		PCAO
+		SPAO
+		TAO (needed?)
+	Address generator in (2 bits, multiplexed)
+		AG0
+		AGN1
+		AGT
+	Increment/Decrement (3 bits, multiplexed)
+		NODEC (= 0)
+		R2DEC
+		R3DEC
+		SPDEC
+		R2INC
+		R3INC
+		PCINC
+		SPINC
+	ALU (7 (8?) bits)
+		4 function
+		logic/arithmetic selector
+		carry in (need selector?  C, 0, 1, ~C)
+		Flags in
+	Other (3 bits)
+		~PCIF
+		SEQRST
+		HLT
+		PGR (select ROM or RAM)
+
 
 instruction set:
 
@@ -429,8 +557,8 @@ Group 7a branch instructions
 		oo
 			00 - BRc imm
 			01 - BRNc imm
-			10 - SKc	next instruction must be one byte
-			11 - SKNc	next instruction must be one byte
+			10 - SKc	next instruction must be two bytes
+			11 - SKNc	next instruction must be two bytes
 		c = C, Z, N, O
 		destination is immediate byte
 
