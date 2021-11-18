@@ -241,6 +241,11 @@ implementation notes:
 			second is selected among 0,-1,T (immediate offset)
 			7HCT283
 		don't need constant 1 since we pre-increment the register
+		Problem: incrementing a register will change the address bus, perhaps
+			while still writing.
+		Idea: use 574 latch with inverted clock - invert 3-5 times to delay signal
+			until address bus is ready - address will hold until next clock down
+			no worries about pulse width
 
 	Control Unit
 		FLAG signal is always generated from b1b0 of IR, b2 from IR (NOT)
