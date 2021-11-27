@@ -117,6 +117,7 @@ implementation notes:
 			not available as HCT - use 74HCT191 or 74HCT193
 				these are IT chips w/ CD prefix - what is that?
 			but easier to work with - see below re: 193
+				maybe not - see below
 		requires 74LS245 octal bus tranceiver
 		74HCT670 - 4x4 bits, independent read/write
 			would allow R0-R3 in 2 chips (3 with transceiver)
@@ -125,6 +126,7 @@ implementation notes:
 		use 193x2 for R2, R3, SP (needs 245)
 			presettable
 			logic is tricky - requires counter signals high, count on low-high transition
+			can be done by ORing clock with enable
 
 	IR	use 377 - no 245 necessary
 
@@ -240,12 +242,32 @@ implementation notes:
 			adder - first input is a register (R2, R3, SP, PC)
 			second is selected among 0,-1,T (immediate offset)
 			7HCT283
-		don't need constant 1 since we pre-increment the register
-		Problem: incrementing a register will change the address bus, perhaps
-			while still writing.
-		Idea: use 574 latch with inverted clock - invert 3-5 times to delay signal
-			until address bus is ready - address will hold until next clock down
-			no worries about pulse width
+		NOTE: for decrement, register is not changed until clock up
+		don't need constant 1 since we post-increment the register
+		Problem: decrementing a register will change the address bus, perhaps
+			while still writing to memory.
+		Not a problem for post-increment.  That's never
+			a memory write; it's always a memory read
+			The address bus and data bus may change with a post-increment,
+			but on a memory read the data is already latched somewhere else.
+		Idea: use 574 latch with inverted clock - invert 3-5 times to
+			delay signal until address bus is ready - address will hold until
+			next clock down - no worries about pulse width
+		Idea: use a 373 transparent latch with inverted clock
+			transparent while clock down (inverted clock high)
+			latched while clock up (inverted clock low)
+
+	Rotation Unit
+		always reading from B register (data needs to be latched into B)
+			route into two 245s, one for left, one for right
+			bit 0 (left shift) / bit 7 (right shift) selected from 4 values
+				use instruction bits to select
+					b1b0 chooses among 0,b7,C,b0 for b0/b7
+					b2 choose left/right shift
+		b2 determines which 245 is enabled
+		third 245 used to output to DB
+			cycle 1: A out, B in
+			cycle 2: RU out, A in
 
 	Control Unit
 		FLAG signal is always generated from b1b0 of IR, b2 from IR (NOT)
@@ -372,6 +394,7 @@ control signals:
 		AGN1
 		AGT
 	Increment/Decrement (3 bits, multiplexed)
+	use 1x138 - all enables are active low
 		NODEC (= 0)
 		R2DEC
 		R3DEC
@@ -488,14 +511,20 @@ Group 3 - accumulator-only operations
 		all flags set on each operation
 		011 00 ooo
 		ooo
-			clr	clear accumulator
-			sar	shift right, bit 7 duplicated, bit 0 to C
-			shr	shift right, bit 7 gets zero, bit 0 to C
-			shl	shift left, bit 0 gets zero, bit 7 to C
-			ror	rotate right, bit 0 to bit 7
-			rol	rotate left, bit 7 to bit 0
-			rcr	rotate right, C to bit 7, bit 0 to C
-			rcl	rotate left, C to bit 0, bit 7 to C
+			b1b0 chooses among 0,b7,C,b0 for b0/b7
+			b2 choose left/right shift
+
+			000	shl	shift left,   b0 <- 0   C <- b7
+			001	rol	rotate left,  b0 <- b7  C <- b7
+			010	rcl	rotate left,  b0 <- C   C <- b7
+
+			011	clr	clear accumulator
+
+			100	shr	shift right,  b7 <- 0   C <- b0
+			101	sar	shift right,  b7 <- b7  C <- b0
+			110	rcr	rotate right, b7 <- C   C <- b0
+			111	ror	rotate right, b7 <- b0  C <- b0
+
 	subgroup 01
 		all flags set on each operation
 		011 01 ooo (imm = immediate 8-bit value)
@@ -554,7 +583,7 @@ Group 6 - more register ops (with addressing)
 				
 		no flags set
 
-Group 7a branch instructions
+Group 7.0 branch instructions
 
 	111 0oo ff
 
@@ -567,7 +596,7 @@ Group 7a branch instructions
 		c = C, Z, N, O
 		destination is immediate byte
 
-Group 7b
+Group 7.1
 
 	111 1oo nn
 
