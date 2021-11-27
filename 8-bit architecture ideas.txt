@@ -357,7 +357,7 @@ control signals:
 
 	Data bus out (4 bits, multiplexed)
 	use 2x138 - all enables are active low (245)
-		NODO (= 0)
+		NODO (= F)
 		ADO
 		R0DO
 		R1DO
@@ -370,7 +370,7 @@ control signals:
 		ROMDO
 	Data bus in (4 bits, multiplexed)
 	use 2x138 - all loads are active low
-		NODI (= 0)
+		NODI (= F)
 		ADI
 		BDI
 		R0DI
@@ -384,6 +384,7 @@ control signals:
 		IRDI
 	Address bus out (3 bits, multiplexed)
 	use 1x138 - all enables are active low
+	If TAO not needed, can we get away with 2 bits?
 		R2AO
 		R3AO
 		PCAO
