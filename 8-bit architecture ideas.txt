@@ -208,6 +208,8 @@ implementation notes:
 		71256 - SRAM 32K x 8 $3.29 for standard power, 12 ns, 28 pin
 			any reason to prefer slower chip at same price?
 			similar pinouts
+		use dip switches to select bits 8-n of ROM?  Would allow several
+			256-byte programs in ROM, selectable by DIP switches
 
 	logic chips
 		00 - quad NAND
@@ -256,6 +258,12 @@ implementation notes:
 		Idea: use a 373 transparent latch with inverted clock
 			transparent while clock down (inverted clock high)
 			latched while clock up (inverted clock low)
+		How to get T onto data bus for CALL, LEA
+			(1) Use TDO
+			no (2) Use AGUDO, Z register input to AGU
+			2 removes one xDO signal, adds one xAO signal
+			Z may be useful in other ways (e.g. default AGU input)
+			BUT: TDO needed for MOV SP,imm
 
 	Rotation Unit
 		always reading from B register (data needs to be latched into B)
@@ -302,6 +310,14 @@ implementation notes:
 			74ls169 has ~ENP and U/~D pins (~ENT cascades from ~RC0)
 			~ENP = ~xINC and ~xDEC
 			U/~D = ~xDEC
+		use 32-bit control word (even if only 24 needed):
+			program same contents into each ROM
+				bits 0,1	- select ROM
+				bits 2,3	- sequence counter
+						  as of now, max 4 steps per operation
+				bits 4,11	- IR
+			minimum 4K ROM needed
+
 		See James Bates part 9, 34:00 for need for latches to EEPROM address
 			loading IR will change the EEPROM address
 			uses 74HCT273
@@ -315,49 +331,15 @@ control signals:
 	the address registers often have an implicit to select R2 or R3. Also,
 	PC and SP don't fit this model anyway.
 
-	Anyway, with this original way of thinking, the control signals would
-	be something like this:
-
-	PCO	PC out
-	PCI	PC in
-	PCINC	PC increment
-	IRI	IR in
-	RO	register out (register selected by bits in instruction)
-	RI	register in (register selected by bits in instruction)
-	RS	register select (bits 0,1 or bits 2,3)
-	AR	address register (forces bit 3 high for address register)
-	ALUS0
-	 to
-	ALUS3	ALU function selection
-	ALUM	ALU M signal (logical vs. arithmetic)
-	ALUC	ALU C signal (use carry)
-	BI	register B in (second ALU input)
-	AO	register A out
-	AI	register A in
-	SPO	SP out
-	SPI	SP in
-	RAMO	RAM out
-	RAMI	RAM in
-	MARI	MAR in
-	HLT	halt
-	FO	flags out
-	FI	flags in
-	SPINC	increment stack pointer
-	SPDEC	decrement stack pointer
-	RINC	increment (address) register
-	RDEC	decrement (address) register
- 	RS	reset sequence (back to sequence point 0 - fetch)
-
-	flag selection uses bits from instruction
-	register selection uses bits from instruction
-	can multiplex outputs (PCO, RO, AO, SPO, RAMO, FO)
-	can multiplex inputs (PCI, RI, AI, SPI, RI, BI, RAMI, MARI, FI)
-
-	Alternate set, not using IR bits to select registers:
+	But: This approach does still work for:
+		condition jumps - 2-4 decoder used to select proper flag
+		rotations - 1 bit for l/r, 2 to select end bit operation
 
 	Data bus out (4 bits, multiplexed)
 	use 2x138 - all enables are active low (245)
-		NODO (= F)
+	for TDO, use ZAO, AGT, AGUDO
+	for BO, use ALU function to output B
+		NODO (= F) (needed?)
 		ADO
 		R0DO
 		R1DO
@@ -365,9 +347,13 @@ control signals:
 		R3DO
 		SPDO
 		PCDO
-		TDO
 		RAMDO
 		ROMDO
+		RUDO
+		TDO
+		ALUDO
+		AGUDO (needed for address calculations)
+			add R,imm	with R=SP,R2,R3
 	Data bus in (4 bits, multiplexed)
 	use 2x138 - all loads are active low
 		NODI (= F)
@@ -384,19 +370,19 @@ control signals:
 		IRDI
 	Address bus out (3 bits, multiplexed)
 	use 1x138 - all enables are active low
-	If TAO not needed, can we get away with 2 bits?
+	instead of TAO, use ZAO, AGT, AGUDO
+		ZAO
 		R2AO
 		R3AO
 		PCAO
 		SPAO
-		TAO (needed?)
 	Address generator in (2 bits, multiplexed)
 		AG0
 		AGN1
 		AGT
 	Increment/Decrement (3 bits, multiplexed)
 	use 1x138 - all enables are active low
-		NODEC (= 0)
+		NODI (= 0)
 		R2DEC
 		R3DEC
 		SPDEC
@@ -405,10 +391,11 @@ control signals:
 		PCINC
 		SPINC
 	ALU (7 (8?) bits)
-		4 function
-		logic/arithmetic selector
-		carry in (need selector?  C, 0, 1, ~C)
-		Flags in
+		ALUF0 - ALUF4 - 4 function
+		ALUM - logic/arithmetic selector
+		ALUC0, ALUC1
+			carry in (need selector C, 0, 1, ~C)
+		ALUFI = Flags in
 	Other (3 bits)
 		~PCIF
 		SEQRST
@@ -416,6 +403,33 @@ control signals:
 		PGR (select ROM or RAM)
 
 
+Some example microcode:
+	fetch cycle
+		ROMDO,IRDI,PCAO,AG0,PCINC		IR <- ROM(PC++)
+	MOV R0,R1
+		R1DO,R0DI,ZAO,AG0,NODEC,SEQRST		R0 <- R1
+	MOV R0,(R2+imm)
+		ROMDO,TDI,PCAO,AG0,PCINC		T <- ROM(PC++)
+		RAMDO,R0DI,R2AO,AGT,NODI,SEQRST		R0 <- RAM(R2+T)
+	JMP addr
+		ROMDO,TDI,PCAO,AG0,PCINC		T <- ROM(PC++)
+		PCDO,RAMDI,SPAO,AG0,SPDEC		RAM(--SP) <- PC
+		TDO,PCDI,ZAO,AG0,NODI,SEQRST		PC <- T
+	LD R1,imm
+		ROMDO,R1DI,PCAO,AG0,PCINC,SEQRST	R1 <- ROM(PC++)
+	LD R2,(imm)
+		ROMDO,TDI,PCAO,AG0,PCINC		T <- ROM(PC++)
+		RAMDO,R2DI,ZAO,AGT,NODI,SEQRST		R2 <- RAM(0+T)
+	PUSH imm
+		ROMDO,TDI,PCAO,AG0,PCINC		T <- ROM(PC++)
+		TDO,RAMDI,SPAO,AG0,SPINC,SEQRST		RAM(--SP) <- T
+	ADD SP,imm
+		ROMDO,TDI,PCAO,AG0,PCINC		T <- ROM(PC++)
+		AGUDO,SPDI,SPAO,AGT,NODI,SEQRST		SP <- SP+T (via AGU)
+
+
+
+	
 instruction set:
 
 General format
@@ -565,9 +579,9 @@ Group 5 - store register
 
 	unused (4 instructions):
 		101 100 10	MOV R2,PC	[ST (R2)+,R2]
-		101 110 10	???		[ST -(R2),R2]
+		101 110 10	INC R2		[ST -(R2),R2]
 		101 101 11	MOV R3,PC	[ST (R3)+,R3]
-		101 111 11	???		[ST -(R3),R3]
+		101 111 11	INC R3		[ST -(R3),R3]
 
 Group 6 - more register ops (with addressing)
 
@@ -611,8 +625,8 @@ Group 7.1
 	111 111 oo
 
 		oo
-			00 - ???
-			01 - ???
+			00 - ADD R2,imm (uses AGU)
+			01 - ADD R3,imm (uses AGU)
 			10 - ???
 			11 - HLT
 
