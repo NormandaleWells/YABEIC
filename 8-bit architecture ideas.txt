@@ -118,6 +118,7 @@ implementation notes:
 				these are IT chips w/ CD prefix - what is that?
 			but easier to work with - see below re: 193
 				maybe not - see below
+			tie ~ENT to ground, ~ENP is inc/dec signal
 		requires 74LS245 octal bus tranceiver
 		74HCT670 - 4x4 bits, independent read/write
 			would allow R0-R3 in 2 chips (3 with transceiver)
@@ -230,9 +231,10 @@ implementation notes:
 
 	separate address and data busses?
 		assume second instruction set for now - should work for first as well
-		R0,R1,SP,PC read/write both busses
+			Nope, going with first instruction set
+		R2,R3,SP,PC read/write both busses
 		address bus feed live by address calculator with 2 inputs:
-			register (one of R0,R1,SP,PC)
+			register (one of R2,R3,SP,PC)
 			offset (0, 1, -1, or data bus contents (for offsets)
 		MAR connected only to address bus
 		RAM connected only to data bus
@@ -242,10 +244,16 @@ implementation notes:
 	Address generation unit (AGU)
 		simple adder 
 			adder - first input is a register (R2, R3, SP, PC)
-			second is selected among 0,-1,T (immediate offset)
+			second is selected among 0,-1,2,T (immediate offset)
 			7HCT283
 		NOTE: for decrement, register is not changed until clock up
+		skip instructions increment PC by 2
+			AGUDO, PCAO, AGU2, PCDI (combined w/ flags)
 		don't need constant 1 since we post-increment the register
+			don't need constant -1 if we create a pulse to perform increment
+				probably not a good idea - too complex
+			must delay until after ROM output stable
+			may be difficult due to ROM instability after address change
 		Problem: decrementing a register will change the address bus, perhaps
 			while still writing to memory.
 		Not a problem for post-increment.  That's never
@@ -264,6 +272,7 @@ implementation notes:
 			2 removes one xDO signal, adds one xAO signal
 			Z may be useful in other ways (e.g. default AGU input)
 			BUT: TDO needed for MOV SP,imm
+				NO! can load directly into SP
 
 	Rotation Unit
 		always reading from B register (data needs to be latched into B)
@@ -305,7 +314,7 @@ implementation notes:
 			xT = (xF xor NOT) and not ~xI
 			FLAG = or (ZT or CT or OT or NT)
 				input into conditional jump
-				xnor is 74LS266 (if needed)
+				xnor is 74LS266 (if needed) (available as LS only)
 		for ~xINC and ~xDEC
 			74ls169 has ~ENP and U/~D pins (~ENT cascades from ~RC0)
 			~ENP = ~xINC and ~xDEC
@@ -317,11 +326,45 @@ implementation notes:
 						  as of now, max 4 steps per operation
 				bits 4,11	- IR
 			minimum 4K ROM needed
-
+			int [4][256]
+		latch ROM outputs?  Would resolve ROM output timing issues
+			Problem: data changes could change 138 outputs often
+				but: still would have only DI or DO at a time
+				and all DIs happen on clock up
+			but would have to happen 150ns after clock low
+			could also just enable 138s after 150ns
 		See James Bates part 9, 34:00 for need for latches to EEPROM address
 			loading IR will change the EEPROM address
-			uses 74HCT273
+			uses 74HCT273 - 373 may be more appropriate
 			see also David Courtney's videos
+		sequencer
+			use 169 (or 163 (161 w/ sync reset), but have none)
+			~SEQRST tied to ~LOAD, negated to ~ENP
+			A,B,C,D tied to ground - will load zero
+				most clock downs increment, but ~SEQRST will reload 0
+
+	general operation
+		clock down
+			sequencer incremented or loaded
+				SEQRST tied to ~LOAD, overrides increment
+			after 150 ns, all control signals valid
+			NOTE: using 138s means only 1 DI, DO, AO signal valid at any time
+		clock up
+			DI signals latch
+			This includes IR, which may change ROM input - issue?
+				If so, use 373 to "latch" IR input to ROMs
+				SEQRST is the only signal that needs to be valid until clock down
+				But that only changes on a fetch, which will never have a SEQRST
+				Even, may be useful to use 37for debugging purposes so signals
+					don't change after data latches
+
+	clock
+		Comment by George Smart on Sharman's video 60
+		to get CLK and ~CLK without separate delays
+			"use exclusive-OR gates on each signal. One gate is XORed with 0 to
+			give the same signal and the other is XORed with a 1 to invert the
+			signal. Both signals have the same delay. If you use the same physical
+			IC the properties will track with temperature, etc., too."
 
 control signals:
 
@@ -377,9 +420,11 @@ control signals:
 		PCAO
 		SPAO
 	Address generator in (2 bits, multiplexed)
+	no need for AGNONE
 		AG0
 		AGN1
 		AGT
+		AG2 (used for skip instructions)
 	Increment/Decrement (3 bits, multiplexed)
 	use 1x138 - all enables are active low
 		NODI (= 0)
@@ -398,7 +443,7 @@ control signals:
 		ALUFI = Flags in
 	Other (3 bits)
 		~PCIF
-		SEQRST
+		~SEQRST (tied to 169 ~LOAD and negated for ~ENP)
 		HLT
 		PGR (select ROM or RAM)
 
