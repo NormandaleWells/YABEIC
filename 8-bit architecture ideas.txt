@@ -342,6 +342,9 @@ implementation notes:
 			~SEQRST tied to ~LOAD, negated to ~ENP
 			A,B,C,D tied to ground - will load zero
 				most clock downs increment, but ~SEQRST will reload 0
+		see https://tomnisbet.github.io/nqsap-pcb/
+			Use 74151 to select between Z, -Z, C, -C, etc.
+			Use pair of 7474s to store flags - makes it easier to set/clear flags
 
 	general operation
 		clock down
