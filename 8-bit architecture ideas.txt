@@ -87,7 +87,7 @@ implementation notes:
 
 	register ICs (octal)
 		273 CLR, CLK, not 3-state
-		373 not edge-triggered not 3-state
+		373 not edge-triggered not 3-state transparent
 		374 CLK, edge-triggered not 3-state
 		377 CLK, CLK enable, not 3-state
 			don't really need clear
@@ -97,6 +97,7 @@ implementation notes:
 			but has all inputs/outputs on same side - easier wiring
 			see https://www.reddit.com/r/beneater/comments/hgr2nf/8_bit_gpr_my_build/
 			does have output enable, but we don't really need that
+			James Sharman: Connect clock to G1 input of 74138
 
 	A,B	74HCT173 D-type register 3-state outputs (or 74LS273?)
 			273 requires use of 245 for enable - no enable on chip
@@ -105,6 +106,7 @@ implementation notes:
 				273 has CLR - not really needed
 			74HCT574? tri-state octal flip-flop
 				no clock enable - requires separate clk AND enable circuit
+				James Sharman: Connect clock to G1 input of 74138
 			use 377 / 245 (same as James Bates - https://www.youtube.com/watch?v=AALVh39X3xw
 
 	T	temporary register used for some addressing
@@ -147,6 +149,7 @@ implementation notes:
 
 	ALU	74LS181 - provides all required ALU ops
 		not available as HCT
+		74LS381 or 382 - very hard to find, especially in small quantities
 
 	Use 74HCT245 always?  Would allows us to see register contents
 
@@ -161,6 +164,7 @@ implementation notes:
 		74HCT138 - 3-line to 8-line
 			inverted outputs - what we need for most enables!
 			for multiplexed control signals (load/enable)
+			for 574 register, connect CLK to G1 enable
 		74HCT139 - dual 2-line to 4-line
 			inverted outputs
 			for register selection (ro-r3)
@@ -240,6 +244,7 @@ implementation notes:
 		RAM connected only to data bus
 		no need for MAR?  Can address bus feed memory directly?
 			would save one cycle for many operations, like fetch
+			can use 373 transparent latch for MAR
 
 	Address generation unit (AGU)
 		simple adder 
@@ -358,7 +363,7 @@ implementation notes:
 				If so, use 373 to "latch" IR input to ROMs
 				SEQRST is the only signal that needs to be valid until clock down
 				But that only changes on a fetch, which will never have a SEQRST
-				Even, may be useful to use 37for debugging purposes so signals
+				Even, may be useful to use 373 for debugging purposes so signals
 					don't change after data latches
 
 	clock
@@ -401,7 +406,7 @@ control signals:
 		AGUDO (needed for address calculations)
 			add R,imm	with R=SP,R2,R3
 	Data bus in (4 bits, multiplexed)
-	use 2x138 - all loads are active low
+	use 2x138 - all loads are active low - for 574, connect CLK to G1
 		NODI (= F)
 		ADI
 		BDI
