@@ -40,14 +40,19 @@
 //
 // Most functions are defined in the header file to give the
 // compiler maximum opportunities for inlining the code.
+//
+// At 5V, all the minimum timings for the 595 are under 60
+// nsecs, which (at 16MHz) is the time for each instruction
+// executed.  So even if the compiler uses a single instruction
+// to set/reset bits in toggle_shift() and toggle_latch(),
+// we're well within the minimum necessary signal pulse durations.
 
 class IC_595
 {
 private:
 
   // Using the register and mask for each signal instead of the pin
-  // numbers cuts the time of
-  // int32_out() from 660 usecs to 100 usecs;
+  // numbers cuts the time of int32_out() from 660 usecs to 100 usecs.
 
   volatile uint8_t * data_reg;
   uint8_t  data_mask;
@@ -86,7 +91,7 @@ private:
 
   void out_8(uint8_t data)
   {
-    // Unrolling the loop increase the program size by
+    // Unrolling the loop increases the program size by
     // 48 bytes, and also increased the execution time
     // of int32_out() from 100 to 112!  No idea why that
     // would happen.
@@ -108,6 +113,13 @@ public:
   void int8_out(uint8_t data)
   {
     out_8(data);
+    toggle_latch();
+  }
+
+  void int16_out(uint16_t data)
+  {
+    out_8((data >>  8) & 0xff);
+    out_8( data        & 0xff);
     toggle_latch();
   }
 
