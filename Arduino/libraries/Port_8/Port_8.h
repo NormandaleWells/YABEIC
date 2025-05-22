@@ -20,8 +20,8 @@
 //
 //   A        22           29
 //   C        37           30        pin ordering is reversed
-//   F        54           61        lined up at bottom of board
-//   K        62           69        lined up at bottom of board
+//   F        54/A0        61/A7     lined up at bottom of board
+//   K        62/A8        69/A15    lined up at bottom of board
 //   L        49           42        pin ordering is reversed
 
 // Rather than assume we're working with the Mega, the ctor takes
